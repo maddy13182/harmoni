@@ -3,7 +3,8 @@ import { User, createUserPreference } from "@familycalnderapp/sdk";
 import { foundryClient } from "./foundryConfig";
 import { 
   cacheUserPreferences, 
-  getCachedPreferences 
+  getCachedPreferences,
+  clearPreferencesCache
 } from "../preferencesCache";
 
 /**
@@ -121,5 +122,42 @@ export async function checkUserPreferences(userId: string): Promise<{
       hasPreferences: false,
       error
     };
+  }
+}
+
+/**
+ * Refresh user preferences from Foundry (bypasses cache)
+ * Used after operations that modify preferences in Foundry
+ */
+export async function refreshUserPreferences(userId: string): Promise<any | null> {
+  try {
+    console.log('🔄 Refreshing user preferences from Foundry for userId:', userId);
+    
+    // Clear existing cache first
+    await clearPreferencesCache(userId);
+    console.log('🧹 Cleared stale preferences cache');
+    
+    // Query fresh from Foundry
+    const userPreferencesResult = await foundryClient(User)
+      .where({ userId: { $eq: userId } })
+      .pivotTo("userPreference")
+      .fetchPage();
+    
+    if (userPreferencesResult.data.length > 0) {
+      const preferences = userPreferencesResult.data[0];
+      console.log('✅ Refreshed preferences from Foundry:', preferences);
+      
+      // Cache the fresh data
+      await cacheUserPreferences(userId, preferences);
+      console.log('💾 Fresh preferences cached');
+      
+      return preferences;
+    }
+    
+    console.log('📭 No preferences found during refresh');
+    return null;
+  } catch (error) {
+    console.error('❌ Error refreshing user preferences:', error);
+    return null;
   }
 }

@@ -98,7 +98,7 @@ export async function createFamilyGroupWithMembership(params: {
 }
 
 /**
- * Check if user has family groups and return them
+ * Check if user has any family groups using Foundry function
  */
 export async function checkUserFamilyGroups(userId: string): Promise<{
   hasGroups: boolean;
@@ -106,10 +106,16 @@ export async function checkUserFamilyGroups(userId: string): Promise<{
   error?: any;
 }> {
   try {
-    const groups = await getFamilyGroupsForUser(userId);
+    console.log('🔍 Checking family groups using getUserFamilyGroups function for userId:', userId);
+    
+    // Use Foundry function instead of link traversal
+    const groups = await fetchFamilyGroupsFromFoundry(userId);
+    
+    console.log('📋 getUserFamilyGroups returned:', groups.length, 'groups');
+    
     return {
       hasGroups: groups.length > 0,
-      groups: groups.length > 0 ? groups : undefined
+      groups: groups
     };
   } catch (error) {
     console.error('❌ Error checking user family groups:', error);
@@ -118,4 +124,13 @@ export async function checkUserFamilyGroups(userId: string): Promise<{
       error
     };
   }
+}
+
+/**
+ * Fetch family groups directly from Foundry using getUserFamilyGroups function
+ * Does NOT use cache
+ */
+async function fetchFamilyGroupsFromFoundry(userId: string): Promise<any[]> {
+  const { fetchFamilyGroups } = await import('./calendarApi');
+  return await fetchFamilyGroups(userId);
 }

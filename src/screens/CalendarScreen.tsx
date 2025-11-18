@@ -20,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 
-import { initializeCalendar, loadCalendarEvents } from '../services/calendarService';
+import { initializeCalendar, initializeCalendarAfterGroupCreation, loadCalendarEvents } from '../services/calendarService';
 import { getCurrentUserId } from '../services/foundry/cacheService';
 import { Colors } from '../constants/Colors';
 import { Layout } from '../constants/Layout';
@@ -74,7 +74,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
       }
 
       // Initialize calendar (loads families + default events)
-      const data = await initializeCalendar(userId);
+      const data = await initializeCalendarAfterGroupCreation(userId);
 
       setFamilyGroups(data.familyGroups);
       setSelectedFamilyIds(data.defaultFamilyIds);
@@ -83,7 +83,17 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
 
     } catch (error: any) {
       console.error('[CalendarScreen] Failed to load calendar:', error);
-      Alert.alert('Error', error.message || 'Failed to load calendar');
+      
+      // Handle specific error for missing default calendar
+      if (error.message === 'NO_DEFAULT_CALENDAR') {
+        Alert.alert(
+          'No Default Calendar',
+          'You need to set a default family calendar in your preferences to view the calendar.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Error', error.message || 'Failed to load calendar');
+      }
     } finally {
       setLoading(false);
     }

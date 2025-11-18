@@ -113,18 +113,12 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
       });
 
       console.log('✅ Family group created successfully:', result);
+      console.log('📋 Created group details:', {
+        addedObjects: result.addedObjects,
+        modifiedObjects: result.modifiedObjects,
+      });
 
-      // Add to cache (the API should return the created group)
-      // For now, we'll create a basic group object
-      const createdGroup = {
-        familyGroupId: result.familyGroupId || 'temp-id',
-        groupName: groupName.trim(),
-        groupColor: groupColor,
-        groupDescription: groupDescription.trim() || undefined,
-      };
-      
-      addFamilyGroup(createdGroup);
-
+      // DO NOT cache - let calendar service handle fresh data loading
       // Navigate to calendar with group name
       onGroupCreated(groupName.trim());
     } catch (error) {

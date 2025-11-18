@@ -30,6 +30,7 @@ export {
   getUserPreferences,
   createUserPreferences,
   checkUserPreferences,
+  refreshUserPreferences,
 } from './preferencesService';
 
 // Export preferences cache functions

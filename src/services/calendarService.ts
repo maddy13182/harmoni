@@ -8,37 +8,111 @@ import {
   getFamilyGroups,
   hasCachedGroups,
   storeFamilyGroups,
-  getSelectedGroup,
+  clearFamilyGroupCache,
 } from './familyGroupCache';
 import { fetchFamilyGroups, fetchCalendarEvents } from './foundry/calendarApi';
 import { getCurrentUser } from './foundry/cacheService';
 import { getCachedPreferences } from './preferencesCache';
+import { refreshUserPreferences } from './foundry/preferencesService';
 import type { CalendarViewResponse, FamilyGroup } from '../types';
 
+// Helper to wait/delay
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
- * Load family groups (uses cache if available)
+ * Load family groups from Foundry with retry logic
+ * Does NOT use cache - always fetches fresh
  * 
  * @param userId - User ID to load groups for
+ * @param retryOnEmpty - Whether to retry if empty result
  * @returns Array of family groups
  */
-export async function loadFamilyGroups(userId: string): Promise<FamilyGroup[]> {
+export async function loadFamilyGroupsFresh(
+  userId: string,
+  retryOnEmpty: boolean = false
+): Promise<FamilyGroup[]> {
   try {
-    // Check cache first
-    if (hasCachedGroups()) {
-      console.log('[CalendarService] Using cached family groups');
-      return getFamilyGroups();
+    console.log('[CalendarService] 📡 Fetching fresh family groups from Foundry');
+    
+    let groups = await fetchFamilyGroups(userId);
+    console.log('[CalendarService] 📋 First attempt returned:', groups.length, 'groups');
+    
+    // Retry logic for Foundry consistency
+    if (groups.length === 0 && retryOnEmpty) {
+      console.log('[CalendarService] ⏳ Empty result, retrying in 1 second...');
+      await wait(1000);
+      
+      groups = await fetchFamilyGroups(userId);
+      console.log('[CalendarService] 📋 Retry returned:', groups.length, 'groups');
     }
-
-    // Cache miss - fetch from Foundry
-    console.log('[CalendarService] Cache miss, fetching from Foundry');
-    const groups = await fetchFamilyGroups(userId);
-
-    // Store in cache
-    storeFamilyGroups(groups);
-
+    
+    // Store in cache for future use
+    if (groups.length > 0) {
+      storeFamilyGroups(groups);
+      console.log('[CalendarService] 💾 Family groups cached');
+    }
+    
     return groups;
   } catch (error) {
-    console.error('[CalendarService] Failed to load family groups:', error);
+    console.error('[CalendarService] ❌ Failed to load family groups:', error);
+    throw error;
+  }
+}
+
+/**
+ * Initialize calendar after family group creation
+ * Refreshes preferences and loads fresh family groups
+ * 
+ * @param userId - User ID
+ * @returns Initial calendar data
+ */
+export async function initializeCalendarAfterGroupCreation(userId: string): Promise<{
+  familyGroups: FamilyGroup[];
+  defaultFamilyIds: string[];
+  calendarData: CalendarViewResponse | null;
+  viewType: 'day' | 'week' | 'month';
+}> {
+  try {
+    console.log('[CalendarService] 🔄 Initializing calendar after group creation');
+    
+    // Step 1: Refresh user preferences from Foundry (to get updated defaultFamilyGroupId)
+    const userPreference = await refreshUserPreferences(userId);
+    console.log('[CalendarService] 📋 Refreshed preferences, defaultFamilyGroupId:', userPreference?.defaultFamilyGroupId);
+    
+    // Step 2: Clear family group cache and fetch fresh
+    clearFamilyGroupCache();
+    const familyGroups = await loadFamilyGroupsFresh(userId, true);  // With retry
+    console.log('[CalendarService] 📋 Loaded', familyGroups.length, 'family groups');
+    
+    if (familyGroups.length === 0) {
+      throw new Error('No family groups found after creation');
+    }
+    
+    // Step 3: Validate defaultFamilyGroupId exists
+    if (!userPreference?.defaultFamilyGroupId) {
+      throw new Error('NO_DEFAULT_CALENDAR');
+    }
+    
+    console.log('[CalendarService] ✅ Using default family group:', userPreference.defaultFamilyGroupId);
+    
+    // Step 4: Load calendar events
+    const viewType = (userPreference?.calendarViewPreference as 'day' | 'week' | 'month') || 'month';
+    const calendarData = await loadCalendarEvents(
+      userId,
+      [userPreference.defaultFamilyGroupId],
+      viewType
+    );
+    
+    console.log('[CalendarService] ✅ Calendar initialized successfully after group creation');
+    
+    return {
+      familyGroups,
+      defaultFamilyIds: [userPreference.defaultFamilyGroupId],
+      calendarData,
+      viewType,
+    };
+  } catch (error) {
+    console.error('[CalendarService] ❌ Failed to initialize calendar after group creation:', error);
     throw error;
   }
 }
@@ -85,7 +159,7 @@ export async function loadCalendarEvents(
 
 /**
  * Initialize calendar with default settings
- * Uses cached user preference for default family and view type
+ * For returning users with existing groups
  * 
  * @param userId - User ID
  * @returns Initial calendar data
@@ -100,7 +174,7 @@ export async function initializeCalendar(userId: string): Promise<{
     console.log('[CalendarService] Initializing calendar for user:', userId);
 
     // Load family groups (with caching)
-    const familyGroups = await loadFamilyGroups(userId);
+    const familyGroups = await loadFamilyGroupsFresh(userId, false);
 
     if (familyGroups.length === 0) {
       return {
@@ -115,21 +189,15 @@ export async function initializeCalendar(userId: string): Promise<{
     const userPreference = await getCachedPreferences(userId);
     const viewType = (userPreference?.calendarViewPreference as 'day' | 'week' | 'month') || 'month';
 
-    // Determine default family to load
-    let defaultFamilyIds: string[] = [];
-    
-    if (userPreference?.defaultFamilyGroupId) {
-      // Use user's default family
-      defaultFamilyIds = [userPreference.defaultFamilyGroupId];
-    } else {
-      // Use first family if no default set
-      defaultFamilyIds = [familyGroups[0].familyGroupId];
+    // Validate defaultFamilyGroupId exists
+    if (!userPreference?.defaultFamilyGroupId) {
+      throw new Error('NO_DEFAULT_CALENDAR');
     }
 
     // Load calendar events for default family
     const calendarData = await loadCalendarEvents(
       userId,
-      defaultFamilyIds,
+      [userPreference.defaultFamilyGroupId],
       viewType
     );
 
@@ -137,7 +205,7 @@ export async function initializeCalendar(userId: string): Promise<{
 
     return {
       familyGroups,
-      defaultFamilyIds,
+      defaultFamilyIds: [userPreference.defaultFamilyGroupId],
       calendarData,
       viewType,
     };
@@ -161,7 +229,6 @@ function getDateRangeForView(viewType: 'day' | 'week' | 'month'): {
 
   switch (viewType) {
     case 'day':
-      // Load 3 days (yesterday, today, tomorrow)
       const dayStart = new Date(now);
       dayStart.setDate(dayStart.getDate() - 1);
       dayStart.setHours(0, 0, 0, 0);
@@ -176,7 +243,6 @@ function getDateRangeForView(viewType: 'day' | 'week' | 'month'): {
       };
 
     case 'week':
-      // Load 3 weeks (last week, this week, next week)
       const weekStart = new Date(now);
       weekStart.setDate(weekStart.getDate() - now.getDay() - 7);
       weekStart.setHours(0, 0, 0, 0);
@@ -192,7 +258,6 @@ function getDateRangeForView(viewType: 'day' | 'week' | 'month'): {
 
     case 'month':
     default:
-      // Load 3 months (last month, this month, next month)
       const monthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       monthStart.setHours(0, 0, 0, 0);
 
