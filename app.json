@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Harmoni",
+    "slug": "family_calanderapp",
+    "owner": "mramamurthy1982",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "family_calanderapp",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6B4CE6"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.harmoni.familycalendar",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6B4CE6"
+      },
+      "package": "com.harmoni.familycalendar",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fa4b91ee-9d9b-46af-92dd-2a945e7f9b17"
+      }
+    }
+  }
+}
