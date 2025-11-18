@@ -4,6 +4,9 @@ High-level tracking of development progress and major milestones.
 
 | Version | Timestamp | Commit Hash | Change Summary | Status |
 |---------|-----------|-------------|----------------|--------|
+| 0.3.2 | 2025-11-18 17:52:00 | c7ef7b9 | 🔧 Fix family group loading with refresh and retry logic | ✅ Stable |
+| 0.3.1 | 2025-11-18 16:53:00 | f517467 | 🐛 Enhanced calendar API debugging and error handling | ✅ Stable |
+| 0.3.0 | 2025-11-18 16:46:00 | 25b4a96 | 📅 User preferences persistent cache + Complete calendar integration | ✅ Stable |
 | 0.2.1 | 2025-11-17 23:45:00 | 485bf80 | 🏗️ Major refactoring: Modular architecture (891 → 10 focused files) | ✅ Stable |
 | 0.2.0 | 2025-11-17 23:09:00 | a836ad8 | Family Group Management System with complete setup flow | ✅ Stable |
 | 0.1.0 | 2025-11-17 13:40:00 | a529693 | 🎉 Purple screens eliminated + User preferences system + Enhanced UX | ✅ Stable |
@@ -264,7 +267,75 @@ src/
 - Add comprehensive unit tests for new modular structure
 - Consider implementing state management library (Redux/Zustand) if complexity grows
 
+## Version 0.3.0 Details
+
+**Major Achievement:** User Preferences Persistent Cache + Complete Calendar Integration
+
+**Key Features Added:**
+- **Persistent Preferences Cache:** SecureStore-based caching system
+  - Stores all 18 preference properties including `defaultFamilyGroupId`
+  - Survives app restarts with multi-user support
+  - Cache cleared on logout for security
+  
+- **Calendar Integration:** Full calendar functionality with Foundry
+  - Calendar API service with `getUserFamilyGroups` and `getUserCalendarEvents`
+  - Calendar service with caching and date range calculation
+  - Modern CalendarScreen UI with family selector and event display
+  - Pull-to-refresh, view type toggle (day/week/month)
+  - Event cards with attendee information and "Who's Who" legend
+
+- **Calendar Types:** Comprehensive TypeScript definitions
+  - CalendarEvent, Attendee, FamilyGroupWithMembers
+  - CalendarViewResponse, FamilyGroupInfo
+
+**Files Created:**
+- `src/services/preferencesCache.ts`
+- `src/services/foundry/calendarApi.ts`
+- `src/services/calendarService.ts`
+
+**Development Status:** ✅ Preferences caching operational, calendar UI complete
+
+## Version 0.3.1 Details
+
+**Bug Fix:** Enhanced calendar API debugging and error handling
+
+**Changes:**
+- Added detailed Foundry function call logging
+- Added raw response inspection with JSON output
+- Added null safety check for undefined responses
+- Added comprehensive error logging with stack traces
+- Returns empty data structure instead of crashing on null response
+
+**Development Status:** ✅ Better error diagnostics for Foundry integration issues
+
+## Version 0.3.2 Details
+
+**Major Fix:** Family Group Loading with Refresh and Retry Logic
+
+**Problem Solved:**
+- After creating family group, calendar loaded with wrong ID ("temp-id")
+- Stale preferences cache didn't have updated `defaultFamilyGroupId`
+- Family groups cached with incorrect ID
+
+**Solution Implemented:**
+1. **Removed premature caching** from FamilyGroupSetupScreen
+2. **Added `refreshUserPreferences()`** - Refreshes from Foundry after group creation
+3. **Added `loadFamilyGroupsFresh()`** - Always fetches fresh with 1-second retry
+4. **Added `initializeCalendarAfterGroupCreation()`** - Special initialization flow
+5. **Updated `checkUserFamilyGroups()`** - Uses `getUserFamilyGroups` function instead of link traversal
+6. **Added validation** - Throws error if no `defaultFamilyGroupId` set
+
+**Files Modified:**
+- `src/services/foundry/familyGroupService.ts` - Use Foundry function instead of link traversal
+- `src/services/foundry/preferencesService.ts` - Added refresh function
+- `src/services/calendarService.ts` - Added retry logic and new initialization
+- `src/screens/FamilyGroupSetupScreen.tsx` - Removed caching
+- `src/screens/CalendarScreen.tsx` - Use new initialization, handle errors
+- `src/services/foundry/index.ts` - Export new functions
+
+**Development Status:** ✅ Family group loading fixed, ready for testing
+
 ---
 
-*Last Updated: 2025-11-17 23:45:00*
+*Last Updated: 2025-11-18 17:52:00*
 *Maintained by: Development Team*
