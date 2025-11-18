@@ -46,7 +46,8 @@ export async function fetchCalendarEvents(
   endDate: string
 ): Promise<CalendarViewResponse> {
   try {
-    console.log('[CalendarAPI] Fetching calendar events:', {
+    console.log('[CalendarAPI] 📡 Calling Foundry function: getUserCalendarEvents');
+    console.log('[CalendarAPI] Parameters:', {
       userId,
       familyGroupIds,
       startDate,
@@ -60,10 +61,29 @@ export async function fetchCalendarEvents(
       endDate: endDate,
     });
     
-    console.log('[CalendarAPI] Fetched', result?.events?.length || 0, 'events');
+    console.log('[CalendarAPI] 📦 Raw Foundry response:', JSON.stringify(result, null, 2));
+    console.log('[CalendarAPI] 📊 Response type:', typeof result);
+    console.log('[CalendarAPI] 🔍 Response keys:', result ? Object.keys(result) : 'null');
+    
+    // Handle different response formats
+    if (!result) {
+      console.log('[CalendarAPI] ⚠️ Foundry returned null/undefined, returning empty data');
+      return {
+        events: [],
+        familyGroupsWithMembers: [],
+        familyGroupInfo: [],
+      };
+    }
+    
+    console.log('[CalendarAPI] ✅ Fetched', result?.events?.length || 0, 'events');
     return result as CalendarViewResponse;
   } catch (error) {
-    console.error('[CalendarAPI] Failed to fetch calendar events:', error);
+    console.error('[CalendarAPI] ❌ Failed to fetch calendar events:', error);
+    console.error('[CalendarAPI] 🔍 Error details:', {
+      name: (error as Error).name,
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+    });
     throw new Error('Failed to load calendar events');
   }
 }
