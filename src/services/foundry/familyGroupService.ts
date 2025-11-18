@@ -3,57 +3,20 @@ import { User } from "@familycalnderapp/sdk";
 import { foundryClient } from "./foundryConfig";
 
 /**
- * Get all family groups for a user using link traversal
- * User -> FamilyMembership -> FamilyGroup
+ * Get all family groups for a user using getUserFamilyGroups Foundry function
+ * Replaced link traversal with direct function call
  */
 export async function getFamilyGroupsForUser(userId: string): Promise<any[]> {
   try {
-    console.log('🔍 Fetching family groups for userId:', userId);
+    console.log('🔍 Fetching family groups using getUserFamilyGroups function for userId:', userId);
     
-    // Step 1: Get all FamilyMemberships for the user using link traversal
-    const memberships = await foundryClient(User)
-      .where({ userId: { $eq: userId } })
-      .pivotTo("membership")
-      .fetchPage();
+    // Use Foundry function instead of link traversal
+    const { fetchFamilyGroups } = await import('./calendarApi');
+    const groups = await fetchFamilyGroups(userId);
     
-    console.log('📋 Found', memberships.data.length, 'family memberships');
+    console.log('✅ Found', groups.length, 'family groups');
     
-    if (memberships.data.length === 0) {
-      console.log('📭 No family memberships found for user');
-      return [];
-    }
-    
-    // Step 2: For each membership, get the linked FamilyGroups
-    const familyGroupArrays = await Promise.all(
-      memberships.data.map(async (membership: any) => {
-        try {
-          const groups = await foundryClient(membership.$objectType)
-            .where({ membershipId: { $eq: membership.$primaryKey } })
-            .pivotTo("familyGroup")
-            .fetchPage();
-          return groups.data;
-        } catch (error) {
-          console.error('❌ Error fetching family group for membership:', membership.$primaryKey, error);
-          return [];
-        }
-      })
-    );
-    
-    // Step 3: Flatten the array and deduplicate by FamilyGroup ID
-    const allFamilyGroups = familyGroupArrays.flat();
-    const uniqueFamilyGroupsMap: { [id: string]: any } = {};
-    
-    allFamilyGroups.forEach((group: any) => {
-      const groupId = group.$primaryKey || group.familyGroupId;
-      if (groupId && !uniqueFamilyGroupsMap[groupId]) {
-        uniqueFamilyGroupsMap[groupId] = group;
-      }
-    });
-    
-    const uniqueGroups = Object.values(uniqueFamilyGroupsMap);
-    console.log('✅ Found', uniqueGroups.length, 'unique family groups');
-    
-    return uniqueGroups;
+    return groups;
   } catch (error) {
     console.error('❌ Error fetching family groups:', error);
     throw error;
