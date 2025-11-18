@@ -1,6 +1,7 @@
 // Cache Management Service
 import { userCache, CachedUser } from "../userCache";
 import * as familyGroupCache from "../familyGroupCache";
+import * as preferencesCache from "../preferencesCache";
 
 // ===== USER CACHE UTILITIES =====
 
@@ -63,17 +64,58 @@ export function updateCachedUser(updates: Partial<CachedUser>): CachedUser | nul
 // ===== FAMILY GROUP CACHE UTILITIES =====
 
 /**
- * Clear all caches (user and family groups) - useful for logout
- */
-export function clearAllCaches(): void {
-  userCache.clearCache();
-  familyGroupCache.clearFamilyGroupCache();
-  console.log('🧹 All caches cleared');
-}
-
-/**
  * Get family group cache statistics
  */
 export function getFamilyGroupCacheStats() {
   return familyGroupCache.getCacheStats();
+}
+
+// ===== PREFERENCES CACHE UTILITIES =====
+
+/**
+ * Cache user preferences
+ */
+export const cacheUserPreferences = preferencesCache.cacheUserPreferences;
+
+/**
+ * Get cached preferences for a user
+ */
+export const getCachedPreferences = preferencesCache.getCachedPreferences;
+
+/**
+ * Check if preferences are cached
+ */
+export const hasPreferencesCache = preferencesCache.hasPreferencesCache;
+
+/**
+ * Clear preferences cache for a specific user
+ */
+export const clearPreferencesCache = preferencesCache.clearPreferencesCache;
+
+/**
+ * Update cached preferences
+ */
+export const updateCachedPreferences = preferencesCache.updateCachedPreferences;
+
+/**
+ * Get preferences cache statistics
+ */
+export const getPreferencesCacheStats = preferencesCache.getPreferencesCacheStats;
+
+// ===== CLEAR ALL CACHES =====
+
+/**
+ * Clear all caches (user, family groups, and preferences) - useful for logout
+ * Note: For preferences, you need to provide the userId
+ */
+export async function clearAllCaches(userId?: string): Promise<void> {
+  userCache.clearCache();
+  familyGroupCache.clearFamilyGroupCache();
+  
+  // Clear preferences cache if userId provided
+  if (userId) {
+    await preferencesCache.clearPreferencesCache(userId);
+  }
+  
+  console.log('🧹 All caches cleared');
 }

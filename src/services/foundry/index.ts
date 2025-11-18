@@ -32,6 +32,16 @@ export {
   checkUserPreferences,
 } from './preferencesService';
 
+// Export preferences cache functions
+export {
+  cacheUserPreferences,
+  getCachedPreferences,
+  hasPreferencesCache,
+  clearPreferencesCache,
+  updateCachedPreferences,
+  getPreferencesCacheStats,
+} from './cacheService';
+
 // Export family group service functions
 export {
   getFamilyGroupsForUser,
@@ -39,7 +49,13 @@ export {
   checkUserFamilyGroups,
 } from './familyGroupService';
 
-// Export cache service functions
+// Export calendar API functions
+export {
+  fetchFamilyGroups,
+  fetchCalendarEvents,
+} from './calendarApi';
+
+// Export cache service functions (including preferences cache)
 export {
   getCurrentUser,
   getCurrentUserId,
@@ -53,6 +69,9 @@ export {
   getFamilyGroupCacheStats,
 } from './cacheService';
 
+// Export preferences cache types
+export type { CachedUserPreferences } from '../preferencesCache';
+
 // Placeholder functions for future implementation
 export async function fetchFamilyMembers() {
   try {
@@ -60,16 +79,6 @@ export async function fetchFamilyMembers() {
     return [];
   } catch (error) {
     console.error('Error fetching family members:', error);
-    throw error;
-  }
-}
-
-export async function fetchCalendarEvents(startDate: Date, endDate: Date) {
-  try {
-    console.log('Fetching calendar events from Foundry...', { startDate, endDate });
-    return [];
-  } catch (error) {
-    console.error('Error fetching calendar events:', error);
     throw error;
   }
 }

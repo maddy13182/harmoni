@@ -1,15 +1,28 @@
 // User Preferences Service for Foundry
 import { User, createUserPreference } from "@familycalnderapp/sdk";
 import { foundryClient } from "./foundryConfig";
+import { 
+  cacheUserPreferences, 
+  getCachedPreferences 
+} from "../preferencesCache";
 
 /**
  * Get user preferences using link traversal
+ * Checks cache first, then queries Foundry if not cached
  */
 export async function getUserPreferences(userId: string): Promise<any | null> {
   try {
     console.log('🔍 Looking up user preferences for userId:', userId);
     
-    // Use link traversal to get user preferences
+    // 1. Check cache first
+    const cached = await getCachedPreferences(userId);
+    if (cached) {
+      console.log('✅ Returning cached preferences (age:', Math.round((Date.now() - cached.cachedAt) / 1000), 'seconds)');
+      return cached;
+    }
+    
+    // 2. Query Foundry if not cached
+    console.log('📡 No cache found, querying Foundry...');
     const userPreferencesResult = await foundryClient(User)
       .where({ userId: { $eq: userId } })
       .pivotTo("userPreference")
@@ -20,6 +33,11 @@ export async function getUserPreferences(userId: string): Promise<any | null> {
     if (userPreferencesResult.data.length > 0) {
       const preferences = userPreferencesResult.data[0];
       console.log('✅ User preferences found:', preferences);
+      
+      // 3. Cache the result
+      await cacheUserPreferences(userId, preferences);
+      console.log('💾 Preferences cached for future use');
+      
       return preferences;
     }
     
@@ -33,11 +51,13 @@ export async function getUserPreferences(userId: string): Promise<any | null> {
 
 /**
  * Create user preferences using the createUserPreference action
+ * After creation, queries back the preferences and caches them
  */
 export async function createUserPreferences(preferencesData: any): Promise<any> {
   try {
     console.log('🔨 Creating user preferences with data:', preferencesData);
     
+    // 1. Create in Foundry
     const result = await foundryClient(createUserPreference).applyAction(preferencesData, {
       $returnEdits: true
     });
@@ -49,6 +69,29 @@ export async function createUserPreferences(preferencesData: any): Promise<any> 
       console.log('📊 Edited Object Types Count:', result.editedObjectTypes?.length || 0);
       console.log('📝 Edited Object Types:', result.editedObjectTypes);
       console.log('🔍 Full result structure keys:', Object.keys(result));
+    }
+    
+    // 2. Query back the created preferences to get complete data including auto-generated fields
+    const userId = preferencesData.userId;
+    console.log('📡 Querying back created preferences for userId:', userId);
+    
+    const createdPreferences = await foundryClient(User)
+      .where({ userId: { $eq: userId } })
+      .pivotTo("userPreference")
+      .fetchPage();
+    
+    if (createdPreferences.data.length > 0) {
+      const fullPreferences = createdPreferences.data[0];
+      console.log('✅ Retrieved complete preferences:', fullPreferences);
+      
+      // 3. Cache the complete preferences
+      await cacheUserPreferences(userId, fullPreferences);
+      console.log('💾 Created preferences cached for future use');
+      
+      return {
+        ...result,
+        preferences: fullPreferences
+      };
     }
     
     return result;

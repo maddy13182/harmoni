@@ -1,5 +1,60 @@
 // Family Calendar App Types
 
+// ===== CALENDAR EVENT TYPES =====
+
+export interface CalendarEvent {
+  eventId: string;
+  title: string;
+  description?: string;
+  location?: string;
+  startsAtUtc: string;
+  endsAtUtc: string;
+  isAllDay: boolean;
+  primaryFamilyGroupId: string;
+  primaryFamilyGroupName: string;
+  primaryFamilyGroupColor: string;
+  visibilityLevel: 'full_details' | 'busy_only';
+  attendees: Attendee[];
+}
+
+export interface Attendee {
+  userId: string;
+  displayName: string;
+  color: string;
+  relationshipType: string;
+  familyGroupName: string;
+  attendeeRole: string;
+  responseStatus?: string;
+}
+
+export interface FamilyMemberCalendar {
+  userId: string;
+  displayName: string;
+  color: string;
+  relationshipType: string;
+}
+
+export interface FamilyGroupWithMembers {
+  familyGroupId: string;
+  familyGroupName: string;
+  members: FamilyMemberCalendar[];
+}
+
+export interface CalendarViewResponse {
+  events: CalendarEvent[];
+  familyGroupsWithMembers: FamilyGroupWithMembers[];
+  familyGroupInfo: FamilyGroupInfo[];
+}
+
+export interface FamilyGroupInfo {
+  familyGroupId: string;
+  groupName: string;
+  groupColor: string;
+  isDefault: boolean;
+}
+
+// ===== LEGACY TYPES (Keep for backward compatibility) =====
+
 export interface FamilyMember {
   id: string;
   name: string;
@@ -9,7 +64,7 @@ export interface FamilyMember {
   avatarUrl?: string;
 }
 
-export interface CalendarEvent {
+export interface LegacyCalendarEvent {
   id: string;
   title: string;
   description?: string;

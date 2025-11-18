@@ -2,7 +2,7 @@
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
-import { clearUserCache } from './foundryClient';
+import { clearUserCache, getCurrentUserId, clearPreferencesCache } from './foundryClient';
 
 // Enable web browser to close after authentication
 WebBrowser.maybeCompleteAuthSession();
@@ -155,16 +155,30 @@ export async function isAuthenticated(): Promise<boolean> {
 }
 
 /**
- * Sign out user - clears both auth data and user cache
+ * Sign out user - clears auth data, user cache, and preferences cache
  */
 export async function signOut(): Promise<void> {
   console.log('🚪 Signing out user...');
+  
+  // Get current user ID before clearing cache (needed to clear preferences)
+  const userId = getCurrentUserId();
   
   // Clear secure storage (auth tokens and user info)
   await clearAuthData();
   
   // Clear in-memory user cache
   clearUserCache();
+  
+  // Clear preferences cache for security and privacy
+  if (userId) {
+    try {
+      await clearPreferencesCache(userId);
+      console.log('🧹 Preferences cache cleared for userId:', userId);
+    } catch (error) {
+      console.error('⚠️ Error clearing preferences cache:', error);
+      // Don't throw - continue with sign out even if preferences cache clear fails
+    }
+  }
   
   console.log('✅ User signed out successfully');
 }

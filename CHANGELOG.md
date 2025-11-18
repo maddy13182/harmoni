@@ -5,6 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-18 16:45:00
+
+### Added
+- **User Preferences Persistent Cache System**: Secure, persistent caching for user preferences
+  - `preferencesCache.ts`: Persistent cache using Expo SecureStore (encrypted storage)
+  - Stores all 18 preference properties including new `defaultFamilyGroupId` and `travelModeEnabledAt`
+  - Survives app restarts with multi-user support (keyed by userId)
+  - Cache cleared on logout for security and privacy
+  - Functions: `cacheUserPreferences()`, `getCachedPreferences()`, `clearPreferencesCache()`, `updateCachedPreferences()`
+
+- **Calendar Integration - Complete Implementation**: Full calendar functionality with Foundry integration
+  - `calendarApi.ts`: Foundry API integration for calendar functions
+    - `fetchFamilyGroups()`: Calls `getUserFamilyGroups` Foundry function
+    - `fetchCalendarEvents()`: Calls `getUserCalendarEvents` Foundry function
+  - `calendarService.ts`: Business logic layer with caching
+    - `initializeCalendar()`: Initializes calendar with user preferences
+    - `loadFamilyGroups()`: Loads groups with cache-first strategy
+    - `loadCalendarEvents()`: Loads events with date range calculation
+    - Date range calculation for day/week/month views
+  - `CalendarScreen.tsx`: Complete redesign with modern UI
+    - Family calendar selector with color-coded chips
+    - View type toggle (day/week/month)
+    - Pull-to-refresh functionality
+    - Event cards with attendee information
+    - "Who's Who" legend showing family members
+    - Multi-dot calendar marking for events
+    - Empty states and loading indicators
+
+- **Calendar Type Definitions**: Comprehensive TypeScript types
+  - `CalendarEvent`: Event details with visibility levels
+  - `Attendee`: Attendee information with colors and relationships
+  - `FamilyGroupWithMembers`: Family group structure with member details
+  - `CalendarViewResponse`: Complete calendar data response
+  - `FamilyGroupInfo`: Family group metadata
+
+### Changed
+- **Preferences Service**: Enhanced with automatic caching
+  - `getUserPreferences()`: Now checks cache first before querying Foundry
+  - `createUserPreferences()`: Automatically queries back and caches created preferences
+  - Significant performance improvement with instant preference loading
+
+- **Cache Service**: Extended to include preferences cache management
+  - Added preferences cache exports: `cacheUserPreferences`, `getCachedPreferences`, etc.
+  - Updated `clearAllCaches()` to optionally clear preferences cache
+  - Integrated preferences cache with existing user and family group caches
+
+- **Auth Service**: Enhanced logout to clear preferences cache
+  - `signOut()` now clears preferences cache for security
+  - Prevents data leakage between users on shared devices
+  - Graceful error handling if cache clear fails
+
+- **Foundry Index**: Exported calendar API functions
+  - Added `fetchFamilyGroups` and `fetchCalendarEvents` exports
+  - Removed duplicate placeholder functions
+  - Clean module structure for calendar operations
+
+- **Type Definitions**: Fixed duplicate CalendarEvent interface
+  - Renamed legacy `CalendarEvent` to `LegacyCalendarEvent`
+  - New `CalendarEvent` interface for Foundry calendar events
+  - Proper type safety across calendar components
+
+### Technical Details
+- **Caching Strategy**: 
+  - Preferences: Persistent SecureStore (survives logout for same user)
+  - Family Groups: In-memory cache (30-minute expiry)
+  - Calendar Events: No caching (always fresh from Foundry)
+- **Date Range Calculation**: Intelligent date ranges based on view type
+  - Day view: Loads 3 days (yesterday, today, tomorrow)
+  - Week view: Loads 3 weeks (last, current, next)
+  - Month view: Loads 3 months (last, current, next)
+- **Security**: Preferences cache cleared on logout to protect user privacy
+- **Performance**: Cache-first strategy reduces Foundry API calls significantly
+- **UI/UX**: Modern calendar interface with pull-to-refresh and responsive design
+
+**Commit Hash:** `TBD`
+**Files Created:**
+- `src/services/preferencesCache.ts` (persistent cache with SecureStore)
+- `src/services/foundry/calendarApi.ts` (Foundry calendar API integration)
+- `src/services/calendarService.ts` (calendar business logic with caching)
+
+**Files Modified:**
+- `src/services/foundry/preferencesService.ts` (added automatic caching)
+- `src/services/foundry/cacheService.ts` (added preferences cache exports)
+- `src/services/foundry/index.ts` (exported calendar functions)
+- `src/services/authService.ts` (clear preferences cache on logout)
+- `src/screens/CalendarScreen.tsx` (complete redesign with calendar functionality)
+- `src/types/index.ts` (added calendar types, fixed duplicates)
+- `package.json` (react-native-calendars already installed)
+
+**Development Status:** ✅ Preferences caching operational, calendar UI complete, ready for Foundry SDK integration
+
 ## [0.2.1] - 2025-11-18 00:29:00
 
 ### Changed
