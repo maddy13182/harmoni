@@ -182,7 +182,7 @@ export const RelationshipPicker: React.FC<RelationshipPickerProps> = ({
                     <Ionicons 
                       name={option.icon} 
                       size={24} 
-                      color={selectedRelationship === option.value ? #EF7674 : Colors.text.primary}
+                      color={selectedRelationship === option.value ? "#EF7674" : Colors.text.primary}
                       style={styles.optionIcon}
                     />
                     <Text style={[
