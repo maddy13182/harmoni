@@ -4,6 +4,10 @@ High-level tracking of development progress and major milestones.
 
 | Version | Timestamp | Commit Hash | Change Summary | Status |
 |---------|-----------|-------------|----------------|--------|
+| 0.4.0 | 2025-11-18 19:01:00 | 56c6154 | 🌈 Complete colorful rebrand - multicolor gradient system | ✅ Stable |
+| 0.3.5 | 2025-11-18 18:47:00 | 68b0217 | 🎨 Apple-inspired LoginScreen redesign + menu additions | ✅ Stable |
+| 0.3.4 | 2025-11-18 18:19:00 | 87c2d67 | 🐛 Fix CalendarScreen UI issues (menu, keys, view toggle) | ✅ Stable |
+| 0.3.3 | 2025-11-18 18:04:00 | 3041ade | 🔧 Fix family group loading to use Foundry function | ✅ Stable |
 | 0.3.2 | 2025-11-18 17:52:00 | c7ef7b9 | 🔧 Fix family group loading with refresh and retry logic | ✅ Stable |
 | 0.3.1 | 2025-11-18 16:53:00 | f517467 | 🐛 Enhanced calendar API debugging and error handling | ✅ Stable |
 | 0.3.0 | 2025-11-18 16:46:00 | 25b4a96 | 📅 User preferences persistent cache + Complete calendar integration | ✅ Stable |
@@ -335,7 +339,103 @@ src/
 
 **Development Status:** ✅ Family group loading fixed, ready for testing
 
+## Version 0.3.3 Details
+
+**Bug Fix:** Family Group Loading - Use Foundry Function Instead of Link Traversal
+
+**Problem:** Link traversal (FamilyMembership → FamilyGroup) not implemented in Foundry ontology
+**Solution:** Use `getUserFamilyGroups` Foundry function directly
+
+**Files Modified:**
+- `src/services/foundry/familyGroupService.ts` - Replaced link traversal with function call
+
+**Development Status:** ✅ Family group loading operational
+
+## Version 0.3.4 Details
+
+**Bug Fixes:** CalendarScreen UI Issues
+
+**Fixed:**
+1. Menu button not working - Added MenuModal integration
+2. Duplicate key error - Fixed attendee key generation
+3. View type toggle not working - Fixed state management
+
+**Files Modified:**
+- `src/screens/CalendarScreen.tsx`
+
+**Development Status:** ✅ All calendar UI issues resolved
+
+## Version 0.3.5 Details
+
+**Major Updates:** Apple-Inspired LoginScreen Redesign + Universal Menu Access
+
+**LoginScreen Redesign:**
+- Removed house emoji in purple square
+- Added abstract floating shapes with subtle animations
+- Modern, minimalist Apple-style design
+- Compelling hero message: "Finally, one app that keeps life in sync"
+- AI-focused value proposition
+- Clean feature pills (Voice, AI chat, Email forwarding)
+- Premium black button design
+
+**Menu Integration:**
+- Added menu to PreferencesSetupScreen
+- Added menu to FamilyGroupSetupScreen
+- Universal menu access across all authenticated screens
+
+**Files Modified:**
+- `src/screens/LoginScreen.tsx` - Complete redesign
+- `src/screens/PreferencesSetupScreen.tsx` - Added menu
+- `src/navigation/AppNavigator.tsx` - Added onSignOut props
+
+**Development Status:** ✅ Modern UI achieved, consistent UX
+
+## Version 0.4.0 Details
+
+**Major Achievement:** 🌈 Complete Colorful Rebrand - Multicolor Gradient System
+
+**Brand Transformation:**
+- **Eliminated ALL purple** from the app
+- **Implemented multicolor gradient system** inspired by modern, playful design
+- **Feature-specific colors** for different app functions
+
+**New Color Palette:**
+- Coral (#FF6B9D) - Voice commands
+- Peach (#FFB088) - Email forwarding
+- Yellow (#FFD93D) - Family features
+- Lime (#D4E157) - Fresh accents
+- Cyan (#4DD0E1) - Main brand color
+- Mint (#4ECDC4) - Calendar features
+- Blue (#5B9FED) - Secondary actions
+- Lavender (#9B8FED) - Events
+
+**Global Changes:**
+- Updated Colors.ts with new multicolor system
+- Replaced 100+ color references across 16 files
+- Updated splash screen from purple to cyan
+- Updated Android adaptive icon background to cyan
+
+**Files Updated (16 total):**
+- `src/constants/Colors.ts` - Complete color system redesign
+- `app.json` - Splash screen color updated
+- All 12 screen files - Color references updated
+- All 3 component files - Color references updated
+
+**Technical Implementation:**
+- Used sed for global find-and-replace across codebase
+- `Colors.primary.main` → `Colors.primary.cyan`
+- `Colors.primary.light` → `Colors.primary.mint`
+- `Colors.accent.*` → `Colors.primary.*`
+
+**Development Status:** ✅ Complete colorful rebrand operational, modern gradient system implemented
+
+**Next Priorities:**
+- Create new app icon with colorful gradient design
+- Update splash screen icon
+- Test color accessibility and contrast ratios
+- Consider adding gradient backgrounds to key screens
+
 ---
 
-*Last Updated: 2025-11-18 17:52:00*
+*Last Updated: 2025-11-18 19:01:00*
 *Maintained by: Development Team*
