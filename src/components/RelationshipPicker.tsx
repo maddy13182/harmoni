@@ -182,7 +182,7 @@ export const RelationshipPicker: React.FC<RelationshipPickerProps> = ({
                     <Ionicons 
                       name={option.icon} 
                       size={24} 
-                      color={selectedRelationship === option.value ? Colors.primary.cyan : Colors.text.primary}
+                      color={selectedRelationship === option.value ? #EF7674 : Colors.text.primary}
                       style={styles.optionIcon}
                     />
                     <Text style={[
@@ -195,7 +195,7 @@ export const RelationshipPicker: React.FC<RelationshipPickerProps> = ({
                       <Ionicons 
                         name="checkmark" 
                         size={20} 
-                        color={Colors.primary.cyan} 
+                        color={#EF7674} 
                       />
                     )}
                   </Pressable>
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.secondary,
   },
   optionSelected: {
-    backgroundColor: Colors.primary.cyan + '10', // 10% opacity
+    backgroundColor: #EF7674 + '10', // 10% opacity
   },
   optionIcon: {
     marginRight: 16,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionTextSelected: {
-    color: Colors.primary.cyan,
+    color: #EF7674,
     fontWeight: '600',
   },
 });

@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     gap: Layout.spacing.xs,
   },
   newUserBadge: {
-    backgroundColor: Colors.primary.cyan,
+    backgroundColor: #EF7674,
   },
   existingUserBadge: {
     backgroundColor: Colors.semantic.success,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary.cyan,
+    backgroundColor: #EF7674,
     paddingVertical: Layout.spacing.md,
     paddingHorizontal: Layout.spacing.xl,
     borderRadius: Layout.borderRadius.md,

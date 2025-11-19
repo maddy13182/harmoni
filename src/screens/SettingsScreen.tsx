@@ -79,7 +79,7 @@ export default function SettingsScreen({
               onPress={option.onPress}
             >
               <View style={styles.settingIcon}>
-                <Ionicons name={option.icon as any} size={24} color={Colors.primary.cyan} />
+                <Ionicons name={option.icon as any} size={24} color={#EF7674} />
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingTitle}>{option.title}</Text>

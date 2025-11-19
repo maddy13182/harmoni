@@ -4,7 +4,7 @@
 export const Colors = {
   // Primary Brand Colors - Multicolor Gradient System
   primary: {
-    coral: '#FF6B9D',      // Vibrant coral pink
+    coral: '#EF7674',      // Warm coral salmon - MAIN brand color
     peach: '#FFB088',      // Warm peach orange
     yellow: '#FFD93D',     // Bright sunny yellow
     lime: '#D4E157',       // Fresh lime green
