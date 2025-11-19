@@ -4,6 +4,8 @@ High-level tracking of development progress and major milestones.
 
 | Version | Timestamp | Commit Hash | Change Summary | Status |
 |---------|-----------|-------------|----------------|--------|
+| 0.4.2 | 2025-11-18 19:27:00 | 8b63c4b | 🐛 CRITICAL FIX: All JSX syntax errors resolved | ✅ Stable |
+| 0.4.1 | 2025-11-18 19:10:00 | fdd3f19 | 🎨 Changed cyan to warm coral (#EF7674) | ⚠️ Broken (syntax errors) |
 | 0.4.0 | 2025-11-18 19:01:00 | 56c6154 | 🌈 Complete colorful rebrand - multicolor gradient system | ✅ Stable |
 | 0.3.5 | 2025-11-18 18:47:00 | 68b0217 | 🎨 Apple-inspired LoginScreen redesign + menu additions | ✅ Stable |
 | 0.3.4 | 2025-11-18 18:19:00 | 87c2d67 | 🐛 Fix CalendarScreen UI issues (menu, keys, view toggle) | ✅ Stable |

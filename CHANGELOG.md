@@ -23,14 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   2. StyleSheet values: `: #EF7674` → `: "#EF7674"`
   3. Opacity concatenation: `"#EF7674" + '10'` → `"#EF767419"`
 
-**Commit Hash:** `TBD`
+**Commit Hash:** `1ba1a80` (initial fix), `8b63c4b` (CalendarScreen fix)
 **Files Modified:**
 - `src/screens/SettingUpScreen.tsx`
 - `src/screens/LoginScreen.tsx`
 - `src/screens/FamilyGroupSetupScreen.tsx`
 - `src/screens/UserReadyScreen.tsx`
 - `src/screens/SetupFailedScreen.tsx`
-- `src/screens/CalendarScreen.tsx`
+- `src/screens/CalendarScreen.tsx` (3 additional fixes)
 - `src/screens/WelcomeScreen.tsx`
 - `src/screens/AccountNotFoundScreen.tsx`
 - `src/screens/PreferencesSetupScreen.tsx`
@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/components/MenuModal.tsx`
 - `src/components/RelationshipPicker.tsx`
 
-**Development Status:** ✅ Syntax errors fixed, app launches successfully
+**Development Status:** ✅ All syntax errors fixed, app launches successfully
 
 ## [0.3.4] - 2025-11-18 18:14:00
 
