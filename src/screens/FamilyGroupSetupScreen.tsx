@@ -339,7 +339,7 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
           >
             <View style={styles.cardHeader}>
               <View style={[styles.iconContainer, styles.joinIconContainer]}>
-                <Ionicons name="key" size={28} color={#EF7674} />
+                <Ionicons name="key" size={28} color="#EF7674" />
               </View>
               <View style={styles.cardTitleContainer}>
                 <Text style={styles.optionTitle}>Join Existing Group</Text>
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   joinIconContainer: {
-    backgroundColor: #EF7674 + '15',
+    backgroundColor: "#EF767426",
   },
   createIconContainer: {
     backgroundColor: Colors.semantic.success + '15',
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   inviteInputFilled: {
-    borderColor: #EF7674,
+    borderColor: "#EF7674",
     backgroundColor: Colors.background.primary,
   },
   clearButton: {
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   joinButton: {
-    backgroundColor: #EF7674,
+    backgroundColor: "#EF7674",
   },
   optionButtonDisabled: {
     backgroundColor: Colors.neutral.gray,
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 14,
-    color: #EF7674,
+    color: "#EF7674",
     fontWeight: '500',
     textDecorationLine: 'underline',
   },
@@ -748,7 +748,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cancelButtonText: {
-    color: #EF7674,
+    color: "#EF7674",
     fontSize: 16,
     fontWeight: '500',
   },

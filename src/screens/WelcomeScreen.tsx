@@ -80,7 +80,7 @@ export default function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <MaterialIcons name="person" size={64} color={#EF7674} />
+              <MaterialIcons name="person" size={64} color="#EF7674" />
             </View>
           )}
           <View style={styles.checkmarkContainer}>
@@ -117,7 +117,7 @@ export default function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
           activeOpacity={0.8}
         >
           <Text style={styles.continueButtonText}>Continue to Calendar</Text>
-          <MaterialIcons name="arrow-forward" size={24} color={#EF7674} />
+          <MaterialIcons name="arrow-forward" size={24} color="#EF7674" />
         </TouchableOpacity>
 
         {/* Auto-continue indicator */}
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: Layout.fontSize.lg,
     fontWeight: Layout.fontWeight.semibold,
-    color: #EF7674,
+    color: "#EF7674",
   },
   autoText: {
     fontSize: Layout.fontSize.xs,

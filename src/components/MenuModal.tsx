@@ -98,25 +98,25 @@ export default function MenuModal({ visible, onClose, onSignOut, onSettings, use
               {/* Menu Items */}
               <View style={styles.menuItems}>
                 <TouchableOpacity style={styles.menuItem}>
-                  <Ionicons name="calendar-outline" size={24} color={#EF7674} />
+                  <Ionicons name="calendar-outline" size={24} color="#EF7674" />
                   <Text style={styles.menuItemText}>Calendar</Text>
                   <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem}>
-                  <Ionicons name="people-outline" size={24} color={#EF7674} />
+                  <Ionicons name="people-outline" size={24} color="#EF7674" />
                   <Text style={styles.menuItemText}>Family Members</Text>
                   <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem}>
-                  <Ionicons name="notifications-outline" size={24} color={#EF7674} />
+                  <Ionicons name="notifications-outline" size={24} color="#EF7674" />
                   <Text style={styles.menuItemText}>Notifications</Text>
                   <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem} onPress={() => { onClose(); onSettings(); }}>
-                  <Ionicons name="settings-outline" size={24} color={#EF7674} />
+                  <Ionicons name="settings-outline" size={24} color="#EF7674" />
                   <Text style={styles.menuItemText}>Settings</Text>
                   <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
@@ -124,13 +124,13 @@ export default function MenuModal({ visible, onClose, onSignOut, onSettings, use
                 <View style={styles.divider} />
 
                 <TouchableOpacity style={styles.menuItem}>
-                  <Ionicons name="help-circle-outline" size={24} color={#EF7674} />
+                  <Ionicons name="help-circle-outline" size={24} color="#EF7674" />
                   <Text style={styles.menuItemText}>Help & Support</Text>
                   <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem}>
-                  <Ionicons name="information-circle-outline" size={24} color={#EF7674} />
+                  <Ionicons name="information-circle-outline" size={24} color="#EF7674" />
                   <Text style={styles.menuItemText}>About</Text>
                   <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: #EF7674,
+    backgroundColor: "#EF7674",
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Layout.spacing.md,

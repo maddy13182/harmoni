@@ -92,7 +92,7 @@ export default function UserPreferencesViewScreen({
   }) => (
     <View style={styles.preferenceItem}>
       <View style={styles.preferenceIcon}>
-        <Ionicons name={icon as any} size={20} color={#EF7674} />
+        <Ionicons name={icon as any} size={20} color="#EF7674" />
       </View>
       <View style={styles.preferenceContent}>
         <Text style={styles.preferenceLabel}>{label}</Text>
@@ -113,7 +113,7 @@ export default function UserPreferencesViewScreen({
         </View>
         
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={#EF7674} />
+          <ActivityIndicator size="large" color="#EF7674" />
           <Text style={styles.loadingText}>Loading preferences...</Text>
         </View>
       </SafeAreaView>
@@ -151,7 +151,7 @@ export default function UserPreferencesViewScreen({
         </TouchableOpacity>
         <Text style={styles.title}>User Preferences</Text>
         <TouchableOpacity onPress={onEdit} style={styles.editButton}>
-          <Ionicons name="create-outline" size={24} color={#EF7674} />
+          <Ionicons name="create-outline" size={24} color="#EF7674" />
         </TouchableOpacity>
       </View>
 
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.lg,
   },
   retryButton: {
-    backgroundColor: #EF7674,
+    backgroundColor: "#EF7674",
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.md,
     borderRadius: Layout.borderRadius.lg,
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: #EF7674,
+    backgroundColor: "#EF7674",
     paddingVertical: Layout.spacing.md,
     paddingHorizontal: Layout.spacing.lg,
     borderRadius: Layout.borderRadius.lg,

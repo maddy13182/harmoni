@@ -200,7 +200,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
     } else {
       marked[selectedDate] = {
         selected: true,
-        selectedColor: #EF7674,
+        selectedColor: "#EF7674",
       };
     }
 
@@ -225,7 +225,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={['top']}>
-        <ActivityIndicator size="large" color={#EF7674} />
+        <ActivityIndicator size="large" color="#EF7674" />
         <Text style={styles.loadingText}>Loading your calendar...</Text>
       </SafeAreaView>
     );
@@ -326,10 +326,10 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
           markedDates={getMarkedDates()}
           markingType="multi-dot"
           theme={{
-            todayTextColor: #EF7674,
-            selectedDayBackgroundColor: #EF7674,
-            dotColor: #EF7674,
-            arrowColor: #EF7674,
+            todayTextColor: "#EF7674",
+            selectedDayBackgroundColor: "#EF7674",
+            dotColor: "#EF7674",
+            arrowColor: "#EF7674",
           }}
         />
 
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.lg,
   },
   createButton: {
-    backgroundColor: #EF7674,
+    backgroundColor: "#EF7674",
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.sm,
     borderRadius: Layout.borderRadius.md,
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   familyChipTextSelected: {
-    color: #EF7674,
+    color: "#EF7674",
     fontWeight: '600',
   },
   viewToggle: {
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.primary,
   },
   viewButtonActive: {
-    backgroundColor: #EF7674,
+    backgroundColor: "#EF7674",
   },
   viewButtonText: {
     fontSize: 14,
