@@ -29,16 +29,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import ColorPicker from '../components/ColorPicker';
 import RelationshipPicker from '../components/RelationshipPicker';
+import MenuModal from '../components/MenuModal';
 import { RelationshipType } from '../types';
 import {
   createFamilyGroupWithMembership,
   getCurrentUserId,
+  getCurrentUser,
 } from '../services/foundryClient';
 import { addFamilyGroup } from '../services/familyGroupCache';
 
 interface FamilyGroupSetupScreenProps {
   onGroupCreated: (groupName: string) => void;
   onCancel?: () => void;
+  onSignOut: () => void;
 }
 
 interface FormErrors {
@@ -49,10 +52,19 @@ interface FormErrors {
 export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
   onGroupCreated,
   onCancel,
+  onSignOut,
 }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  // Get current user info for menu
+  const currentUser = getCurrentUser();
+  const userInfo = currentUser ? {
+    name: currentUser.displayName,
+    email: currentUser.email || '',
+  } : undefined;
 
   // Form state
   const [groupName, setGroupName] = useState('');
@@ -299,6 +311,17 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Header with Menu Button */}
+      <View style={styles.topHeader}>
+        <Text style={styles.topHeaderTitle}>Family Calendar Setup</Text>
+        <TouchableOpacity 
+          style={styles.menuButton}
+          onPress={() => setMenuVisible(true)}
+        >
+          <Ionicons name="menu" size={24} color={Colors.text.primary} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.content}>
         <View style={styles.headerSection}>
           <Text style={styles.title}>Let's help you setup your family calendar</Text>
@@ -417,6 +440,17 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Menu Modal */}
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSignOut={onSignOut}
+        onSettings={() => {
+          console.log('Settings pressed');
+        }}
+        userInfo={userInfo}
+      />
     </View>
   );
 };
@@ -425,6 +459,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background.primary,
+  },
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.background.secondary,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  topHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+  menuButton: {
+    padding: 8,
   },
   scrollView: {
     flex: 1,

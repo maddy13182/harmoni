@@ -79,6 +79,7 @@ export const AppNavigator: React.FC = () => {
         return (
           <FamilyGroupSetupScreen
             onGroupCreated={handlers.handleGroupCreated}
+            onSignOut={handlers.handleSignOut}
           />
         );
       

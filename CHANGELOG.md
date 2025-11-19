@@ -23,6 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - useEffect properly triggers event reload when viewType changes
     - Buttons now correctly switch between day, week, and month views
 
+### Added
+- **Universal Menu Access**: Added menu button to all main screens
+  - **FamilyGroupSetupScreen**: Added top header with menu button
+    - Displays "Family Calendar Setup" title
+    - Menu button in top-right corner
+    - Integrated MenuModal with user info and sign-out functionality
+  - **AppNavigator**: Updated to pass onSignOut handler to FamilyGroupSetupScreen
+  - Consistent menu experience across entire app
+
 ### Changed
 - **CalendarScreen.tsx**: Enhanced with proper menu integration
   - Added `getCurrentUser()` import from cache service
@@ -30,17 +39,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - MenuModal now displays user name and email
   - Settings button functional (logs to console, ready for navigation)
 
+- **FamilyGroupSetupScreen.tsx**: Added menu integration
+  - New top header component with title and menu button
+  - Imported MenuModal and getCurrentUser
+  - Added menuVisible state management
+  - Menu displays user info and provides sign-out option
+
+- **AppNavigator.tsx**: Extended FamilyGroupSetupScreen props
+  - Added onSignOut prop to FamilyGroupSetupScreen
+  - Ensures consistent sign-out functionality across all screens
+
 ### Technical Details
 - **Key Generation**: Event-specific keys prevent collisions across multiple events
 - **State Management**: Proper conditional updates prevent infinite loops
 - **User Context**: Menu displays current user information from cache
 - **Error Prevention**: Eliminated React warnings about duplicate keys
+- **Consistent UX**: Menu accessible from all major screens in the app
 
 **Commit Hash:** `TBD`
 **Files Modified:**
 - `src/screens/CalendarScreen.tsx` (fixed menu, keys, and view toggle)
+- `src/screens/FamilyGroupSetupScreen.tsx` (added menu button and integration)
+- `src/navigation/AppNavigator.tsx` (added onSignOut prop)
 
-**Development Status:** ✅ All calendar UI issues resolved, menu functional, view switching operational
+**Development Status:** ✅ All UI issues resolved, menu accessible from all screens, consistent UX achieved
 
 ## [0.3.0] - 2025-11-18 16:45:00
 
