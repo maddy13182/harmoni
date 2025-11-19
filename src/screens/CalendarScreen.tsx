@@ -21,9 +21,10 @@ import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 
 import { initializeCalendar, initializeCalendarAfterGroupCreation, loadCalendarEvents } from '../services/calendarService';
-import { getCurrentUserId } from '../services/foundry/cacheService';
+import { getCurrentUserId, getCurrentUser } from '../services/foundry/cacheService';
 import { Colors } from '../constants/Colors';
 import { Layout } from '../constants/Layout';
+import MenuModal from '../components/MenuModal';
 import type { CalendarEvent, FamilyGroup, CalendarViewResponse, FamilyGroupWithMembers } from '../types';
 
 interface CalendarScreenProps {
@@ -43,6 +44,13 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   const [viewType, setViewType] = useState<'day' | 'week' | 'month'>('month');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [menuVisible, setMenuVisible] = useState(false);
+
+  // Get current user info for menu
+  const currentUser = getCurrentUser();
+  const userInfo = currentUser ? {
+    name: currentUser.displayName,
+    email: currentUser.email || '',
+  } : undefined;
 
   // ============================================
   // LOAD CALENDAR ON MOUNT
@@ -155,7 +163,10 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   // CHANGE VIEW TYPE
   // ============================================
   function changeViewType(newViewType: 'day' | 'week' | 'month') {
-    setViewType(newViewType);
+    if (newViewType !== viewType) {
+      setViewType(newViewType);
+      // Note: useEffect will trigger reload when viewType changes
+    }
   }
 
   // ============================================
@@ -360,6 +371,18 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
           </View>
         )}
       </ScrollView>
+
+      {/* MENU MODAL */}
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSignOut={onSignOut}
+        onSettings={() => {
+          // TODO: Navigate to settings screen
+          console.log('Settings pressed');
+        }}
+        userInfo={userInfo}
+      />
     </SafeAreaView>
   );
 }
@@ -402,7 +425,7 @@ function EventCard({ event }: { event: CalendarEvent }) {
 
       <View style={styles.attendeesSection}>
         {event.attendees.map((attendee, index) => (
-          <View key={`${attendee.userId}-${index}`} style={styles.attendee}>
+          <View key={`${event.eventId}-${attendee.userId}-${index}`} style={styles.attendee}>
             <View style={[styles.attendeeColorDot, { backgroundColor: attendee.color }]} />
             <Text style={styles.attendeeName}>{attendee.displayName}</Text>
             {isBusy && <Text style={styles.busyBadge}>BUSY</Text>}
