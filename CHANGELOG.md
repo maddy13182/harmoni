@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-11-18 19:25:00
+
+### Fixed
+- **CRITICAL: JSX Syntax Errors**: Fixed app-breaking syntax errors from color replacement
+  - Added quotes around hex color values in JSX props: `color="#EF7674"` instead of `color={#EF7674}`
+  - Fixed StyleSheet property values: `backgroundColor: "#EF7674"` instead of `backgroundColor: #EF7674`
+  - Fixed string concatenation for opacity: `"#EF767419"` instead of `"#EF7674" + '10'`
+  - Fixed all 35+ instances across 10 files
+  - App now launches successfully without syntax errors
+
+### Technical Details
+- **Root Cause**: Previous sed replacement changed `Colors.primary.cyan` to `#EF7674` without adding quotes
+- **Impact**: App crashed with "Private names are only allowed in property accesses" error
+- **Solution**: Three sed commands to fix:
+  1. JSX props: `color={#EF7674}` → `color="#EF7674"`
+  2. StyleSheet values: `: #EF7674` → `: "#EF7674"`
+  3. Opacity concatenation: `"#EF7674" + '10'` → `"#EF767419"`
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `src/screens/SettingUpScreen.tsx`
+- `src/screens/LoginScreen.tsx`
+- `src/screens/FamilyGroupSetupScreen.tsx`
+- `src/screens/UserReadyScreen.tsx`
+- `src/screens/SetupFailedScreen.tsx`
+- `src/screens/CalendarScreen.tsx`
+- `src/screens/WelcomeScreen.tsx`
+- `src/screens/AccountNotFoundScreen.tsx`
+- `src/screens/PreferencesSetupScreen.tsx`
+- `src/screens/UserPreferencesViewScreen.tsx`
+- `src/components/MenuModal.tsx`
+- `src/components/RelationshipPicker.tsx`
+
+**Development Status:** ✅ Syntax errors fixed, app launches successfully
+
 ## [0.3.4] - 2025-11-18 18:14:00
 
 ### Fixed

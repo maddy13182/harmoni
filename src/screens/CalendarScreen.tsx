@@ -196,7 +196,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
     // Highlight selected date
     if (marked[selectedDate]) {
       marked[selectedDate].selected = true;
-      marked[selectedDate].selectedColor = #EF7674;
+      marked[selectedDate].selectedColor = "#EF7674";
     } else {
       marked[selectedDate] = {
         selected: true,
@@ -280,13 +280,13 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
                 style={[
                   styles.familyChip,
                   selectedFamilyIds.includes(family.familyGroupId) && styles.familyChipSelected,
-                  { borderColor: family.groupColor || #EF7674 },
+                  { borderColor: family.groupColor || "#EF7674" },
                 ]}
                 onPress={() => toggleFamilySelection(family.familyGroupId)}
               >
                 <View style={[
                   styles.familyColorDot, 
-                  { backgroundColor: family.groupColor || #EF7674 }
+                  { backgroundColor: family.groupColor || "#EF7674" }
                 ]} />
                 <Text
                   style={[
