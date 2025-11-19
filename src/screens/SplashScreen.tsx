@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '../constants/Colors';
 import Layout from '../constants/Layout';
@@ -40,11 +40,11 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [fadeAnim, scaleAnim, onFinish]);
 
   return (
     <LinearGradient
-      colors={["#EF7674", Colors.primary.mint]}
+      colors={["#7972AA", "#9B8FED"]}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -58,9 +58,13 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
           },
         ]}
       >
-        {/* Logo/Icon - Using emoji for now, can be replaced with custom icon */}
+        {/* Logo/Icon */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoEmoji}>🏠</Text>
+          <Image 
+            source={require('../../applogo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         {/* App Name */}
@@ -99,19 +103,20 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.xl,
     ...Layout.shadow.lg,
   },
-  logoEmoji: {
-    fontSize: 64,
+  logo: {
+    width: 100,
+    height: 100,
   },
   appName: {
     fontSize: Layout.fontSize.xxxl,
-    fontWeight: Layout.fontWeight.bold,
+    fontFamily: 'AllianceNo2-Bold',
     color: Colors.text.inverse,
     marginBottom: Layout.spacing.sm,
     letterSpacing: 1,
   },
   tagline: {
     fontSize: Layout.fontSize.md,
-    fontWeight: Layout.fontWeight.regular,
+    fontFamily: 'AllianceNo2-Light',
     color: Colors.text.inverse,
     opacity: 0.9,
   },

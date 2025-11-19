@@ -42,7 +42,15 @@ export const Layout = {
     xxxl: 48,
   },
   
-  // Font Weights
+  // Font Families (Alliance No 2)
+  fontFamily: {
+    light: 'AllianceNo2-Light',      // For footers, notes, secondary text
+    regular: 'AllianceNo2-Regular',  // Fallback/default
+    medium: 'AllianceNo2-Medium',    // For body text, labels, most UI text
+    bold: 'AllianceNo2-Bold',        // For headings, titles, attention-grabbing text
+  },
+  
+  // Font Weights (kept for compatibility, but use fontFamily instead)
   fontWeight: {
     regular: '400' as const,
     medium: '500' as const,

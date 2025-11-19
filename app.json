@@ -35,7 +35,18 @@
     },
     "plugins": [
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/AllianceNo2-Light.otf",
+            "./assets/fonts/AllianceNo2-Regular.otf",
+            "./assets/fonts/AllianceNo2-Medium.otf",
+            "./assets/fonts/AllianceNo2-Bold.otf"
+          ]
+        }
+      ]
     ],
     "extra": {
       "eas": {

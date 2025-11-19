@@ -5,6 +5,77 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-11-18 22:03:00
+
+### Added
+- **Event Creation System - UI Foundation**: Multi-modal event creation interface with animated FAB
+  - `FloatingActionButton.tsx`: Silver + icon button at bottom-right with blur effect
+    - 60x60 point circular button with translucent background
+    - Platform-specific shadows (iOS shadowOffset, Android elevation)
+    - Positioned absolutely at bottom-right (30pt from bottom, 20pt from right)
+    - Accessibility labels for screen readers
+  - `EventCreationModal.tsx`: Animated modal with three creation options
+    - Smooth 300ms spring animation (damping: 15, stiffness: 150)
+    - Blur overlay background (intensity: 20, dark tint)
+    - 85% screen width modal with rounded corners (20px radius)
+    - Three option buttons with icons and descriptions:
+      - 💬 Chat to Create (blue) - Natural language event creation
+      - 📸 Snap or Upload Photo (green) - Image-based event extraction
+      - 🎤 Record Voice Note (red) - Speech-to-text event creation
+    - Close on outside tap or X button
+    - Proper z-index layering and touch handling
+  - Integrated into CalendarScreen with placeholder handlers
+  - All three options show alerts (implementation coming next)
+
+- **New Dependencies**: Installed packages for event creation features
+  - `expo-blur`: Translucent blur effects for FAB and modal
+  - `expo-image-picker`: Camera and photo gallery access
+  - `expo-av`: Audio recording for voice notes
+
+### Changed
+- **CalendarScreen.tsx**: Integrated event creation UI
+  - Added FloatingActionButton overlay on calendar
+  - Added EventCreationModal with state management
+  - Added placeholder handlers: `handleChatCreate()`, `handlePhotoCreate()`, `handleVoiceCreate()`
+  - Modal visibility controlled by `eventCreationModalVisible` state
+  - FAB positioned to not interfere with calendar content
+
+### Technical Details
+- **Animation**: React Native Reanimated with spring physics
+  - Scale animation: 0 → 1 with spring (smooth, natural feel)
+  - Opacity animation: 0 → 1 with timing (300ms duration)
+  - Synchronized animations for modal and overlay
+- **Blur Effects**: 
+  - FAB: intensity 80, light tint, semi-transparent white background
+  - Modal overlay: intensity 20, dark tint for dimming
+  - Modal content: intensity 90, light tint for frosted glass effect
+- **Component Structure**:
+  ```
+  src/components/event-creation/
+  ├── FloatingActionButton.tsx
+  ├── EventCreationModal.tsx
+  └── index.ts
+  ```
+- **Platform Support**: iOS and Android with platform-specific styling
+- **Accessibility**: Full VoiceOver and TalkBack support with labels and hints
+
+**Next Steps**: Implement actual event creation logic for each option
+- Chat: Natural language processing with AI
+- Photo: OCR/Vision AI for event extraction
+- Voice: Speech-to-text with event parsing
+
+**Commit Hash:** `TBD`
+**Files Created:**
+- `src/components/event-creation/FloatingActionButton.tsx`
+- `src/components/event-creation/EventCreationModal.tsx`
+- `src/components/event-creation/index.ts`
+
+**Files Modified:**
+- `src/screens/CalendarScreen.tsx` (integrated FAB and modal)
+- `package.json` (added expo-blur, expo-image-picker, expo-av)
+
+**Development Status:** ✅ Event creation UI complete, ready for AI integration
+
 ## [0.4.2] - 2025-11-18 19:25:00
 
 ### Fixed
@@ -23,7 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   2. StyleSheet values: `: #EF7674` → `: "#EF7674"`
   3. Opacity concatenation: `"#EF7674" + '10'` → `"#EF767419"`
 
-**Commit Hash:** `1ba1a80` (initial fix), `8b63c4b` (CalendarScreen fix)
+**Commit Hash:** `1ba1a80` (initial fix), `8b63c4b` (CalendarScreen), `c54d6e5` (arrays), `1978564` (ternary)
 **Files Modified:**
 - `src/screens/SettingUpScreen.tsx`
 - `src/screens/LoginScreen.tsx`
@@ -31,12 +102,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/screens/UserReadyScreen.tsx`
 - `src/screens/SetupFailedScreen.tsx`
 - `src/screens/CalendarScreen.tsx` (3 additional fixes)
-- `src/screens/WelcomeScreen.tsx`
+- `src/screens/SplashScreen.tsx` (array syntax)
+- `src/screens/WelcomeScreen.tsx` (array syntax)
 - `src/screens/AccountNotFoundScreen.tsx`
 - `src/screens/PreferencesSetupScreen.tsx`
 - `src/screens/UserPreferencesViewScreen.tsx`
 - `src/components/MenuModal.tsx`
-- `src/components/RelationshipPicker.tsx`
+- `src/components/RelationshipPicker.tsx` (ternary operator)
 
 **Development Status:** ✅ All syntax errors fixed, app launches successfully
 

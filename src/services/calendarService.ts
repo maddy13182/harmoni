@@ -123,21 +123,24 @@ export async function initializeCalendarAfterGroupCreation(userId: string): Prom
  * @param userId - User ID
  * @param familyGroupIds - Array of family group IDs
  * @param viewType - Calendar view type (day/week/month)
+ * @param selectedDate - The currently selected date (ISO string)
  * @returns Calendar view response with events
  */
 export async function loadCalendarEvents(
   userId: string,
   familyGroupIds: string[],
-  viewType: 'day' | 'week' | 'month' = 'month'
+  viewType: 'day' | 'week' | 'month' = 'month',
+  selectedDate?: string
 ): Promise<CalendarViewResponse> {
   try {
-    // Calculate date range based on view type
-    const { startDate, endDate } = getDateRangeForView(viewType);
+    // Calculate date range based on view type and selected date
+    const { startDate, endDate } = getDateRangeForView(viewType, selectedDate);
 
     console.log('[CalendarService] Loading calendar events:', {
       userId,
       familyGroupIds,
       viewType,
+      selectedDate,
       startDate,
       endDate,
     });
@@ -216,25 +219,29 @@ export async function initializeCalendar(userId: string): Promise<{
 }
 
 /**
- * Calculate date range based on view type
+ * Calculate date range based on view type and selected date
  * 
  * @param viewType - Calendar view type
+ * @param selectedDate - The currently selected date (ISO string), defaults to today
  * @returns Start and end dates as ISO strings
  */
-function getDateRangeForView(viewType: 'day' | 'week' | 'month'): {
+function getDateRangeForView(
+  viewType: 'day' | 'week' | 'month',
+  selectedDate?: string
+): {
   startDate: string;
   endDate: string;
 } {
-  const now = new Date();
+  // Use selected date or default to today
+  const referenceDate = selectedDate ? new Date(selectedDate + 'T12:00:00') : new Date();
 
   switch (viewType) {
     case 'day':
-      const dayStart = new Date(now);
-      dayStart.setDate(dayStart.getDate() - 1);
+      // Fetch the selected day only
+      const dayStart = new Date(referenceDate);
       dayStart.setHours(0, 0, 0, 0);
 
-      const dayEnd = new Date(now);
-      dayEnd.setDate(dayEnd.getDate() + 1);
+      const dayEnd = new Date(referenceDate);
       dayEnd.setHours(23, 59, 59, 999);
 
       return {
@@ -243,12 +250,13 @@ function getDateRangeForView(viewType: 'day' | 'week' | 'month'): {
       };
 
     case 'week':
-      const weekStart = new Date(now);
-      weekStart.setDate(weekStart.getDate() - now.getDay() - 7);
+      // Fetch the week containing the selected date (Sunday to Saturday)
+      const weekStart = new Date(referenceDate);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
       weekStart.setHours(0, 0, 0, 0);
 
-      const weekEnd = new Date(now);
-      weekEnd.setDate(weekEnd.getDate() + (6 - now.getDay()) + 7);
+      const weekEnd = new Date(referenceDate);
+      weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
       weekEnd.setHours(23, 59, 59, 999);
 
       return {
@@ -258,10 +266,11 @@ function getDateRangeForView(viewType: 'day' | 'week' | 'month'): {
 
     case 'month':
     default:
-      const monthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      // Fetch only the month containing the selected date
+      const monthStart = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
       monthStart.setHours(0, 0, 0, 0);
 
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0);
+      const monthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
       monthEnd.setHours(23, 59, 59, 999);
 
       return {

@@ -71,6 +71,9 @@ export const Colors = {
     selected: '#4ECDC4',   // Mint
     event: '#FF6B9D',      // Coral
     weekend: '#FFD93D',    // Yellow
+    freeDay: '#D4AF37',    // Matte gold for free days
+    freeDayLight: '#FFF9E6', // Light gold background
+    busyBadge: '#EF7674',  // Badge for multiple busy members
   },
   
   // Shadow Colors

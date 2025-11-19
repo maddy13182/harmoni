@@ -1,8 +1,8 @@
 /**
  * Calendar Screen - Main Calendar View
  * 
- * Displays family calendar with events, supports multiple family views,
- * and integrates with cached preferences and family groups
+ * Displays family calendar with Month/Week/Day views
+ * Mobile-optimized with free day detection and multi-person event handling
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,15 +17,19 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 
-import { initializeCalendar, initializeCalendarAfterGroupCreation, loadCalendarEvents } from '../services/calendarService';
+import { initializeCalendarAfterGroupCreation, loadCalendarEvents } from '../services/calendarService';
 import { getCurrentUserId, getCurrentUser } from '../services/foundry/cacheService';
 import { Colors } from '../constants/Colors';
 import { Layout } from '../constants/Layout';
 import MenuModal from '../components/MenuModal';
-import type { CalendarEvent, FamilyGroup, CalendarViewResponse, FamilyGroupWithMembers } from '../types';
+import MonthView from '../components/calendar/MonthView';
+import WeekView from '../components/calendar/WeekView';
+import DayView from '../components/calendar/DayView';
+import { FloatingActionButton, EventCreationModal } from '../components/event-creation';
+import type { CalendarEvent, FamilyGroup, CalendarViewResponse, FamilyMemberCalendar } from '../types';
+import { extractDate } from '../utils/calendarHelpers';
 
 interface CalendarScreenProps {
   onSignOut: () => void;
@@ -42,8 +46,18 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   const [selectedFamilyIds, setSelectedFamilyIds] = useState<string[]>([]);
   const [calendarData, setCalendarData] = useState<CalendarViewResponse | null>(null);
   const [viewType, setViewType] = useState<'day' | 'week' | 'month'>('month');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Use local date, not UTC
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [menuVisible, setMenuVisible] = useState(false);
+  const [legendExpanded, setLegendExpanded] = useState(false);
+  const [whosWhoExpanded, setWhosWhoExpanded] = useState(false);
+  const [eventCreationModalVisible, setEventCreationModalVisible] = useState(false);
 
   // Get current user info for menu
   const currentUser = getCurrentUser();
@@ -51,6 +65,10 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
     name: currentUser.displayName,
     email: currentUser.email || '',
   } : undefined;
+
+  // Get all family members from calendar data
+  const allFamilyMembers: FamilyMemberCalendar[] = calendarData?.familyGroupsWithMembers
+    .flatMap(group => group.members) || [];
 
   // ============================================
   // LOAD CALENDAR ON MOUNT
@@ -66,7 +84,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
     if (selectedFamilyIds.length > 0 && !loading) {
       reloadEvents();
     }
-  }, [selectedFamilyIds, viewType]);
+  }, [selectedFamilyIds, viewType, selectedDate]);
 
   // ============================================
   // INITIAL LOAD
@@ -118,7 +136,8 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
       const data = await loadCalendarEvents(
         userId,
         selectedFamilyIds,
-        viewType
+        viewType,
+        selectedDate  // Pass selected date for accurate date range
       );
 
       setCalendarData(data);
@@ -165,58 +184,63 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   function changeViewType(newViewType: 'day' | 'week' | 'month') {
     if (newViewType !== viewType) {
       setViewType(newViewType);
-      // Note: useEffect will trigger reload when viewType changes
     }
   }
 
   // ============================================
-  // GET MARKED DATES FOR CALENDAR
+  // HANDLE DATE SELECTION
   // ============================================
-  function getMarkedDates() {
-    if (!calendarData?.events) return {};
-
-    const marked: any = {};
-
-    calendarData.events.forEach((event: CalendarEvent) => {
-      const dateKey = event.startsAtUtc.split('T')[0];
-
-      if (!marked[dateKey]) {
-        marked[dateKey] = {
-          marked: true,
-          dots: [],
-        };
-      }
-
-      marked[dateKey].dots.push({
-        key: event.eventId,
-        color: event.primaryFamilyGroupColor,
-      });
-    });
-
-    // Highlight selected date
-    if (marked[selectedDate]) {
-      marked[selectedDate].selected = true;
-      marked[selectedDate].selectedColor = "#EF7674";
-    } else {
-      marked[selectedDate] = {
-        selected: true,
-        selectedColor: "#EF7674",
-      };
-    }
-
-    return marked;
+  function handleDateSelect(date: string) {
+    setSelectedDate(date);
   }
 
   // ============================================
-  // GET EVENTS FOR SELECTED DATE
+  // HANDLE TODAY BUTTON
   // ============================================
-  function getEventsForDate(date: string): CalendarEvent[] {
-    if (!calendarData?.events) return [];
+  function handleTodayPress() {
+    const now = new Date();
+    // Use local date, not UTC
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
     
-    return calendarData.events.filter((event: CalendarEvent) => {
-      const eventDate = event.startsAtUtc.split('T')[0];
-      return eventDate === date;
+    console.log('[CalendarScreen] Today button pressed:', {
+      timestamp: now.toISOString(),
+      localDate: now.toLocaleDateString(),
+      localTime: now.toLocaleTimeString(),
+      extractedDate: today,
+      currentSelectedDate: selectedDate,
     });
+    
+    setSelectedDate(today);
+  }
+
+  // ============================================
+  // HANDLE EVENT TAP - Switch to Day View
+  // ============================================
+  function handleEventTap(event: CalendarEvent) {
+    const eventDate = extractDate(event.startsAtUtc);
+    setSelectedDate(eventDate);
+    setViewType('day');
+  }
+
+  // ============================================
+  // EVENT CREATION HANDLERS (Placeholders)
+  // ============================================
+  function handleChatCreate() {
+    setEventCreationModalVisible(false);
+    Alert.alert('Chat to Create', 'This feature will be implemented next!');
+  }
+
+  function handlePhotoCreate() {
+    setEventCreationModalVisible(false);
+    Alert.alert('Photo Upload', 'This feature will be implemented next!');
+  }
+
+  function handleVoiceCreate() {
+    setEventCreationModalVisible(false);
+    Alert.alert('Voice Recording', 'This feature will be implemented next!');
   }
 
   // ============================================
@@ -225,7 +249,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={['top']}>
-        <ActivityIndicator size="large" color="#EF7674" />
+        <ActivityIndicator size="large" color={Colors.primary.coral} />
         <Text style={styles.loadingText}>Loading your calendar...</Text>
       </SafeAreaView>
     );
@@ -241,9 +265,6 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         <Text style={styles.emptyText}>
           Create your first family calendar to get started!
         </Text>
-        <TouchableOpacity style={styles.createButton}>
-          <Text style={styles.createButtonText}>Create Family Calendar</Text>
-        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -261,18 +282,69 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
       >
         {/* HEADER */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>📅 My Calendar</Text>
-          <TouchableOpacity 
-            style={styles.menuButton}
-            onPress={() => setMenuVisible(true)}
-          >
-            <Ionicons name="menu" size={24} color={Colors.text.primary} />
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <Ionicons name="calendar-outline" size={28} color={Colors.text.primary} style={styles.headerIcon} />
+            <Text style={styles.headerTitle}>My Calendar</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity 
+              style={styles.todayButton}
+              onPress={handleTodayPress}
+            >
+              <Text style={styles.todayButtonText}>Today</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.menuButton}
+              onPress={() => setMenuVisible(true)}
+            >
+              <Ionicons name="menu" size={24} color={Colors.text.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* FAMILY SELECTOR */}
         <View style={styles.familySelector}>
-          <Text style={styles.sectionTitle}>Calendars</Text>
+          <View style={styles.familySelectorHeader}>
+            <Text style={styles.sectionTitle}>Calendars</Text>
+            
+            {/* WHO'S WHO BUTTON - Inline with Calendars */}
+            {calendarData?.familyGroupsWithMembers && calendarData.familyGroupsWithMembers.length > 0 && (
+              <View>
+                <TouchableOpacity 
+                  style={styles.inlinePillButton}
+                  onPressIn={() => setWhosWhoExpanded(true)}
+                  onPressOut={() => setWhosWhoExpanded(false)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.inlinePillButtonText}>Who's Who</Text>
+                  <Ionicons 
+                    name={whosWhoExpanded ? "chevron-up" : "chevron-down"} 
+                    size={14} 
+                    color={Colors.primary.lavender} 
+                  />
+                </TouchableOpacity>
+                
+                {/* WHO'S WHO EXPANDED CONTENT - Absolute positioned */}
+                {whosWhoExpanded && (
+                  <View style={styles.absoluteExpandedContent}>
+                    {calendarData.familyGroupsWithMembers.map((family) => (
+                      <View key={family.familyGroupId} style={styles.legendFamily}>
+                        <Text style={styles.legendFamilyName}>{family.familyGroupName}</Text>
+                        {family.members.map((member) => (
+                          <View key={member.userId} style={styles.legendMember}>
+                            <View style={[styles.legendColorDot, { backgroundColor: member.color }]} />
+                            <Text style={styles.legendMemberName}>{member.displayName}</Text>
+                            <Text style={styles.legendMemberRole}>({member.relationshipType})</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+          
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {familyGroups.map(family => (
               <TouchableOpacity
@@ -280,13 +352,13 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
                 style={[
                   styles.familyChip,
                   selectedFamilyIds.includes(family.familyGroupId) && styles.familyChipSelected,
-                  { borderColor: family.groupColor || "#EF7674" },
+                  { borderColor: family.groupColor || Colors.primary.coral },
                 ]}
                 onPress={() => toggleFamilySelection(family.familyGroupId)}
               >
                 <View style={[
                   styles.familyColorDot, 
-                  { backgroundColor: family.groupColor || "#EF7674" }
+                  { backgroundColor: family.groupColor || Colors.primary.coral }
                 ]} />
                 <Text
                   style={[
@@ -319,58 +391,83 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
           ))}
         </View>
 
-        {/* CALENDAR */}
-        <Calendar
-          current={selectedDate}
-          onDayPress={(day) => setSelectedDate(day.dateString)}
-          markedDates={getMarkedDates()}
-          markingType="multi-dot"
-          theme={{
-            todayTextColor: "#EF7674",
-            selectedDayBackgroundColor: "#EF7674",
-            dotColor: "#EF7674",
-            arrowColor: "#EF7674",
-          }}
-        />
+        {/* CALENDAR VIEWS */}
+        <View style={styles.calendarContainer}>
+          {viewType === 'month' && (
+            <MonthView
+              selectedDate={selectedDate}
+              events={calendarData?.events || []}
+              familyMembers={allFamilyMembers}
+              onDateSelect={handleDateSelect}
+              onEventTap={handleEventTap}
+            />
+          )}
 
-        {/* EVENTS FOR SELECTED DATE */}
-        <View style={styles.eventsSection}>
-          <Text style={styles.sectionTitle}>
-            {new Date(selectedDate).toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </Text>
+          {viewType === 'week' && (
+            <WeekView
+              selectedDate={selectedDate}
+              events={calendarData?.events || []}
+              familyMembers={allFamilyMembers}
+              onDateSelect={handleDateSelect}
+              onEventTap={handleEventTap}
+            />
+          )}
 
-          {getEventsForDate(selectedDate).length === 0 ? (
-            <Text style={styles.noEventsText}>No events for this day</Text>
-          ) : (
-            getEventsForDate(selectedDate).map((event: CalendarEvent) => (
-              <EventCard key={event.eventId} event={event} />
-            ))
+          {viewType === 'day' && (
+            <DayView
+              selectedDate={selectedDate}
+              events={calendarData?.events || []}
+              familyMembers={allFamilyMembers}
+              onDateSelect={handleDateSelect}
+              onEventTap={handleEventTap}
+            />
           )}
         </View>
 
-        {/* COLOR LEGEND */}
-        {calendarData?.familyGroupsWithMembers && calendarData.familyGroupsWithMembers.length > 0 && (
-          <View style={styles.legendSection}>
-            <Text style={styles.sectionTitle}>Who's Who</Text>
-            {calendarData.familyGroupsWithMembers.map((family: FamilyGroupWithMembers) => (
-              <View key={family.familyGroupId} style={styles.legendFamily}>
-                <Text style={styles.legendFamilyName}>{family.familyGroupName}</Text>
-                {family.members.map((member) => (
-                  <View key={member.userId} style={styles.legendMember}>
-                    <View style={[styles.legendColorDot, { backgroundColor: member.color }]} />
-                    <Text style={styles.legendMemberName}>{member.displayName}</Text>
-                    <Text style={styles.legendMemberRole}>({member.relationshipType})</Text>
-                  </View>
-                ))}
+        {/* LEGEND - Collapsible for month view only */}
+        {viewType === 'month' && (
+          <View style={styles.collapsibleSection}>
+            <TouchableOpacity 
+              style={styles.pillButton}
+              onPressIn={() => setLegendExpanded(true)}
+              onPressOut={() => setLegendExpanded(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.pillButtonText}>Legend</Text>
+              <Ionicons 
+                name={legendExpanded ? "chevron-up" : "chevron-down"} 
+                size={16} 
+                color={Colors.primary.lavender} 
+              />
+            </TouchableOpacity>
+            
+            {legendExpanded && (
+              <View style={styles.expandedContent}>
+                <View style={styles.dotLegendRow}>
+                  <View style={[styles.legendDot, { backgroundColor: Colors.calendar.freeDay }]} />
+                  <Text style={styles.dotLegendText}>Free day (no events)</Text>
+                </View>
+                <View style={styles.dotLegendRow}>
+                  <View style={[styles.legendDot, { backgroundColor: Colors.primary.coral }]} />
+                  <Text style={styles.dotLegendText}>Someone has events (see color below)</Text>
+                </View>
               </View>
-            ))}
+            )}
           </View>
         )}
       </ScrollView>
+
+      {/* FLOATING ACTION BUTTON */}
+      <FloatingActionButton onPress={() => setEventCreationModalVisible(true)} />
+
+      {/* EVENT CREATION MODAL */}
+      <EventCreationModal
+        visible={eventCreationModalVisible}
+        onClose={() => setEventCreationModalVisible(false)}
+        onChatCreate={handleChatCreate}
+        onPhotoCreate={handlePhotoCreate}
+        onVoiceCreate={handleVoiceCreate}
+      />
 
       {/* MENU MODAL */}
       <MenuModal
@@ -378,65 +475,11 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         onClose={() => setMenuVisible(false)}
         onSignOut={onSignOut}
         onSettings={() => {
-          // TODO: Navigate to settings screen
           console.log('Settings pressed');
         }}
         userInfo={userInfo}
       />
     </SafeAreaView>
-  );
-}
-
-// ============================================
-// EVENT CARD COMPONENT
-// ============================================
-function EventCard({ event }: { event: CalendarEvent }) {
-  const isBusy = event.visibilityLevel === 'busy_only';
-
-  function formatTime(isoString: string): string {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  }
-
-  return (
-    <View style={[styles.eventCard, { borderLeftColor: event.primaryFamilyGroupColor }]}>
-      <Text style={styles.eventTitle}>{event.title}</Text>
-      
-      <Text style={styles.eventTime}>
-        {event.isAllDay 
-          ? 'All Day' 
-          : `${formatTime(event.startsAtUtc)} - ${formatTime(event.endsAtUtc)}`
-        }
-      </Text>
-
-      {!isBusy && event.location && (
-        <Text style={styles.eventLocation}>📍 {event.location}</Text>
-      )}
-
-      {!isBusy && event.description && (
-        <Text style={styles.eventDescription} numberOfLines={2}>
-          {event.description}
-        </Text>
-      )}
-
-      <View style={styles.attendeesSection}>
-        {event.attendees.map((attendee, index) => (
-          <View key={`${event.eventId}-${attendee.userId}-${index}`} style={styles.attendee}>
-            <View style={[styles.attendeeColorDot, { backgroundColor: attendee.color }]} />
-            <Text style={styles.attendeeName}>{attendee.displayName}</Text>
-            {isBusy && <Text style={styles.busyBadge}>BUSY</Text>}
-          </View>
-        ))}
-      </View>
-
-      <View style={styles.familyBadge}>
-        <Text style={styles.familyBadgeText}>{event.primaryFamilyGroupName}</Text>
-      </View>
-    </View>
   );
 }
 
@@ -471,7 +514,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: Colors.text.primary,
     marginBottom: Layout.spacing.xs,
   },
@@ -480,17 +523,6 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: Layout.spacing.lg,
-  },
-  createButton: {
-    backgroundColor: "#EF7674",
-    paddingHorizontal: Layout.spacing.lg,
-    paddingVertical: Layout.spacing.sm,
-    borderRadius: Layout.borderRadius.md,
-  },
-  createButtonText: {
-    color: Colors.text.inverse,
-    fontSize: 16,
-    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
@@ -501,10 +533,33 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.lightGray,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Layout.spacing.sm,
+  },
+  headerIcon: {
+    marginRight: Layout.spacing.xs,
+  },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: Colors.text.primary,
+  },
+  todayButton: {
+    backgroundColor: Colors.primary.coral,
+    paddingHorizontal: Layout.spacing.md,
+    paddingVertical: Layout.spacing.xs,
+    borderRadius: Layout.borderRadius.md,
+  },
+  todayButtonText: {
+    color: Colors.text.inverse,
+    fontSize: 14,
+    fontWeight: '700',
   },
   menuButton: {
     padding: Layout.spacing.xs,
@@ -515,11 +570,49 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral.lightGray,
   },
+  familySelectorHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text.primary,
-    marginBottom: Layout.spacing.sm,
+  },
+  inlinePillButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background.primary,
+    paddingHorizontal: Layout.spacing.sm,
+    paddingVertical: Layout.spacing.xs / 2,
+    borderRadius: Layout.borderRadius.round,
+    borderWidth: 1,
+    borderColor: Colors.primary.lavender,
+  },
+  inlinePillButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primary.lavender,
+    marginRight: Layout.spacing.xs / 2,
+  },
+  absoluteExpandedContent: {
+    position: 'absolute',
+    top: 35,
+    right: 0,
+    backgroundColor: Colors.background.primary,
+    padding: Layout.spacing.md,
+    borderRadius: Layout.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.neutral.lightGray,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
+    minWidth: 200,
   },
   familyChip: {
     flexDirection: 'row',
@@ -545,8 +638,8 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   familyChipTextSelected: {
-    color: "#EF7674",
-    fontWeight: '600',
+    color: Colors.primary.coral,
+    fontWeight: '700',
   },
   viewToggle: {
     flexDirection: 'row',
@@ -564,112 +657,59 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.primary,
   },
   viewButtonActive: {
-    backgroundColor: "#EF7674",
+    backgroundColor: Colors.primary.coral,
   },
   viewButtonText: {
     fontSize: 14,
+    fontWeight: '700',
     color: Colors.text.secondary,
   },
   viewButtonTextActive: {
     color: Colors.text.inverse,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  eventsSection: {
-    padding: Layout.spacing.md,
-  },
-  noEventsText: {
-    textAlign: 'center',
-    color: Colors.text.tertiary,
-    fontSize: 14,
-    marginTop: Layout.spacing.md,
-  },
-  eventCard: {
-    backgroundColor: Colors.background.secondary,
-    borderRadius: Layout.borderRadius.lg,
-    padding: Layout.spacing.md,
-    marginBottom: Layout.spacing.sm,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  eventTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
-    marginBottom: Layout.spacing.xs,
-  },
-  eventTime: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginBottom: Layout.spacing.xs / 2,
-  },
-  eventLocation: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginBottom: Layout.spacing.xs / 2,
-  },
-  eventDescription: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginTop: Layout.spacing.xs,
-  },
-  attendeesSection: {
-    marginTop: Layout.spacing.sm,
-    paddingTop: Layout.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.neutral.lightGray,
-  },
-  attendee: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.xs / 2,
-  },
-  attendeeColorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: Layout.spacing.xs,
-  },
-  attendeeName: {
-    fontSize: 14,
-    color: Colors.text.primary,
+  calendarContainer: {
     flex: 1,
   },
-  busyBadge: {
-    fontSize: 10,
-    color: Colors.semantic.error,
-    fontWeight: 'bold',
-    backgroundColor: '#FFE0DB',
-    paddingHorizontal: Layout.spacing.xs / 2,
-    paddingVertical: 2,
-    borderRadius: Layout.borderRadius.sm,
-  },
-  familyBadge: {
+  collapsibleSection: {
     marginTop: Layout.spacing.xs,
-    alignSelf: 'flex-start',
+    marginHorizontal: Layout.spacing.md,
   },
-  familyBadgeText: {
-    fontSize: 12,
-    color: Colors.text.secondary,
-    backgroundColor: Colors.background.primary,
-    paddingHorizontal: Layout.spacing.xs,
-    paddingVertical: Layout.spacing.xs / 2,
-    borderRadius: Layout.borderRadius.sm,
-  },
-  legendSection: {
-    padding: Layout.spacing.md,
+  pillButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: Colors.background.secondary,
+    paddingHorizontal: Layout.spacing.md,
+    paddingVertical: Layout.spacing.sm,
+    borderRadius: Layout.borderRadius.round,
+    borderWidth: 1,
+    borderColor: Colors.primary.lavender,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  pillButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.primary.lavender,
+  },
+  expandedContent: {
+    backgroundColor: Colors.background.secondary,
+    padding: Layout.spacing.md,
     marginTop: Layout.spacing.xs,
+    borderRadius: Layout.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.neutral.lightGray,
   },
   legendFamily: {
-    marginBottom: Layout.spacing.md,
+    marginBottom: Layout.spacing.sm,
   },
   legendFamilyName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text.primary,
     marginBottom: Layout.spacing.xs,
   },
@@ -693,5 +733,20 @@ const styles = StyleSheet.create({
   legendMemberRole: {
     fontSize: 12,
     color: Colors.text.tertiary,
+  },
+  dotLegendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.sm,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: Layout.spacing.sm,
+  },
+  dotLegendText: {
+    fontSize: 14,
+    color: Colors.text.primary,
   },
 });
