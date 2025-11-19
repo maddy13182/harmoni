@@ -32,7 +32,7 @@ export default function AccountNotFoundScreen({ onSignOut, userEmail }: AccountN
 
         {/* Info Box */}
         <View style={styles.infoBox}>
-          <Ionicons name="information-circle-outline" size={24} color={Colors.primary.main} />
+          <Ionicons name="information-circle-outline" size={24} color={Colors.primary.cyan} />
           <View style={styles.infoContent}>
             <Text style={styles.infoTitle}>What to do next:</Text>
             <Text style={styles.infoText}>
@@ -52,7 +52,7 @@ export default function AccountNotFoundScreen({ onSignOut, userEmail }: AccountN
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.retryButton} onPress={onSignOut}>
-            <Ionicons name="refresh-outline" size={20} color={Colors.primary.main} />
+            <Ionicons name="refresh-outline" size={20} color={Colors.primary.cyan} />
             <Text style={styles.retryButtonText}>Try Different Account</Text>
           </TouchableOpacity>
         </View>
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.xl,
     width: '100%',
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary.main,
+    borderLeftColor: Colors.primary.cyan,
   },
   infoContent: {
     flex: 1,
@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.spacing.lg,
     borderRadius: Layout.borderRadius.md,
     borderWidth: 2,
-    borderColor: Colors.primary.main,
+    borderColor: Colors.primary.cyan,
     gap: Layout.spacing.sm,
   },
   retryButtonText: {
     fontSize: Layout.fontSize.md,
     fontWeight: Layout.fontWeight.semibold,
-    color: Colors.primary.main,
+    color: Colors.primary.cyan,
   },
 });

@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
     paddingVertical: Layout.spacing.md,
     paddingHorizontal: Layout.spacing.lg,
     borderRadius: Layout.borderRadius.md,

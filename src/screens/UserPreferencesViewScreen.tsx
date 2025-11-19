@@ -92,7 +92,7 @@ export default function UserPreferencesViewScreen({
   }) => (
     <View style={styles.preferenceItem}>
       <View style={styles.preferenceIcon}>
-        <Ionicons name={icon as any} size={20} color={Colors.primary.main} />
+        <Ionicons name={icon as any} size={20} color={Colors.primary.cyan} />
       </View>
       <View style={styles.preferenceContent}>
         <Text style={styles.preferenceLabel}>{label}</Text>
@@ -113,7 +113,7 @@ export default function UserPreferencesViewScreen({
         </View>
         
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary.main} />
+          <ActivityIndicator size="large" color={Colors.primary.cyan} />
           <Text style={styles.loadingText}>Loading preferences...</Text>
         </View>
       </SafeAreaView>
@@ -151,7 +151,7 @@ export default function UserPreferencesViewScreen({
         </TouchableOpacity>
         <Text style={styles.title}>User Preferences</Text>
         <TouchableOpacity onPress={onEdit} style={styles.editButton}>
-          <Ionicons name="create-outline" size={24} color={Colors.primary.main} />
+          <Ionicons name="create-outline" size={24} color={Colors.primary.cyan} />
         </TouchableOpacity>
       </View>
 
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.lg,
   },
   retryButton: {
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.md,
     borderRadius: Layout.borderRadius.lg,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.primary.light + '20',
+    backgroundColor: Colors.primary.mint + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Layout.spacing.md,
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
     paddingVertical: Layout.spacing.md,
     paddingHorizontal: Layout.spacing.lg,
     borderRadius: Layout.borderRadius.lg,

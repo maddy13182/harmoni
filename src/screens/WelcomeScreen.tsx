@@ -57,7 +57,7 @@ export default function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
 
   return (
     <LinearGradient
-      colors={[Colors.primary.main, Colors.primary.light]}
+      colors={[Colors.primary.cyan, Colors.primary.mint]}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -80,7 +80,7 @@ export default function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <MaterialIcons name="person" size={64} color={Colors.primary.main} />
+              <MaterialIcons name="person" size={64} color={Colors.primary.cyan} />
             </View>
           )}
           <View style={styles.checkmarkContainer}>
@@ -117,7 +117,7 @@ export default function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
           activeOpacity={0.8}
         >
           <Text style={styles.continueButtonText}>Continue to Calendar</Text>
-          <MaterialIcons name="arrow-forward" size={24} color={Colors.primary.main} />
+          <MaterialIcons name="arrow-forward" size={24} color={Colors.primary.cyan} />
         </TouchableOpacity>
 
         {/* Auto-continue indicator */}
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     fontSize: Layout.fontSize.lg,
     fontWeight: Layout.fontWeight.semibold,
-    color: Colors.primary.main,
+    color: Colors.primary.cyan,
   },
   autoText: {
     fontSize: Layout.fontSize.xs,

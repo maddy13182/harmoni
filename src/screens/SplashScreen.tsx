@@ -44,7 +44,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
 
   return (
     <LinearGradient
-      colors={[Colors.primary.main, Colors.primary.light]}
+      colors={[Colors.primary.cyan, Colors.primary.mint]}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}

@@ -14,11 +14,11 @@ export default function SettingUpScreen({ userName }: SettingUpScreenProps) {
       <View style={styles.content}>
         {/* Icon */}
         <View style={styles.iconContainer}>
-          <Ionicons name="settings-outline" size={60} color={Colors.primary.main} />
+          <Ionicons name="settings-outline" size={60} color={Colors.primary.cyan} />
         </View>
 
         {/* Loading Indicator */}
-        <ActivityIndicator size="large" color={Colors.primary.main} style={styles.loader} />
+        <ActivityIndicator size="large" color={Colors.primary.cyan} style={styles.loader} />
 
         {/* Title */}
         <Text style={styles.title}>Hello {userName}!</Text>
@@ -88,6 +88,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral.lightGray,
   },
   activeDot: {
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
   },
 });

@@ -396,7 +396,7 @@ export default function PreferencesSetupScreen({
             <Switch
               value={formData.emailNotificationsEnabled}
               onValueChange={(value) => setFormData(prev => ({ ...prev, emailNotificationsEnabled: value }))}
-              trackColor={{ false: Colors.neutral.gray, true: Colors.primary.main }}
+              trackColor={{ false: Colors.neutral.gray, true: Colors.primary.cyan }}
               thumbColor={formData.emailNotificationsEnabled ? Colors.neutral.white : Colors.neutral.lightGray}
             />
           </View>
@@ -409,7 +409,7 @@ export default function PreferencesSetupScreen({
             <Switch
               value={formData.pushNotificationsEnabled}
               onValueChange={(value) => setFormData(prev => ({ ...prev, pushNotificationsEnabled: value }))}
-              trackColor={{ false: Colors.neutral.gray, true: Colors.primary.main }}
+              trackColor={{ false: Colors.neutral.gray, true: Colors.primary.cyan }}
               thumbColor={formData.pushNotificationsEnabled ? Colors.neutral.white : Colors.neutral.lightGray}
             />
           </View>
@@ -540,8 +540,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.primary,
   },
   optionButtonSelected: {
-    backgroundColor: Colors.primary.main,
-    borderColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
+    borderColor: Colors.primary.cyan,
   },
   optionText: {
     fontSize: 13,
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     marginRight: Layout.spacing.sm,
   },
   submitButton: {
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
     paddingVertical: Layout.spacing.md,
     paddingHorizontal: Layout.spacing.lg,
     borderRadius: Layout.borderRadius.lg,

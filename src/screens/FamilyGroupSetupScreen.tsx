@@ -339,7 +339,7 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
           >
             <View style={styles.cardHeader}>
               <View style={[styles.iconContainer, styles.joinIconContainer]}>
-                <Ionicons name="key" size={28} color={Colors.primary.main} />
+                <Ionicons name="key" size={28} color={Colors.primary.cyan} />
               </View>
               <View style={styles.cardTitleContainer}>
                 <Text style={styles.optionTitle}>Join Existing Group</Text>
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     }),
   },
   joinCard: {
-    borderColor: Colors.primary.light + '40',
+    borderColor: Colors.primary.mint + '40',
   },
   createCard: {
     borderColor: Colors.semantic.success + '40',
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   joinIconContainer: {
-    backgroundColor: Colors.primary.main + '15',
+    backgroundColor: Colors.primary.cyan + '15',
   },
   createIconContainer: {
     backgroundColor: Colors.semantic.success + '15',
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   inviteInputFilled: {
-    borderColor: Colors.primary.main,
+    borderColor: Colors.primary.cyan,
     backgroundColor: Colors.background.primary,
   },
   clearButton: {
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   joinButton: {
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
   },
   optionButtonDisabled: {
     backgroundColor: Colors.neutral.gray,
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 14,
-    color: Colors.primary.main,
+    color: Colors.primary.cyan,
     fontWeight: '500',
     textDecorationLine: 'underline',
   },
@@ -748,7 +748,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cancelButtonText: {
-    color: Colors.primary.main,
+    color: Colors.primary.cyan,
     fontSize: 16,
     fontWeight: '500',
   },

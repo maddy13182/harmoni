@@ -196,11 +196,11 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
     // Highlight selected date
     if (marked[selectedDate]) {
       marked[selectedDate].selected = true;
-      marked[selectedDate].selectedColor = Colors.primary.main;
+      marked[selectedDate].selectedColor = Colors.primary.cyan;
     } else {
       marked[selectedDate] = {
         selected: true,
-        selectedColor: Colors.primary.main,
+        selectedColor: Colors.primary.cyan,
       };
     }
 
@@ -225,7 +225,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={['top']}>
-        <ActivityIndicator size="large" color={Colors.primary.main} />
+        <ActivityIndicator size="large" color={Colors.primary.cyan} />
         <Text style={styles.loadingText}>Loading your calendar...</Text>
       </SafeAreaView>
     );
@@ -280,13 +280,13 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
                 style={[
                   styles.familyChip,
                   selectedFamilyIds.includes(family.familyGroupId) && styles.familyChipSelected,
-                  { borderColor: family.groupColor || Colors.primary.main },
+                  { borderColor: family.groupColor || Colors.primary.cyan },
                 ]}
                 onPress={() => toggleFamilySelection(family.familyGroupId)}
               >
                 <View style={[
                   styles.familyColorDot, 
-                  { backgroundColor: family.groupColor || Colors.primary.main }
+                  { backgroundColor: family.groupColor || Colors.primary.cyan }
                 ]} />
                 <Text
                   style={[
@@ -326,10 +326,10 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
           markedDates={getMarkedDates()}
           markingType="multi-dot"
           theme={{
-            todayTextColor: Colors.primary.main,
-            selectedDayBackgroundColor: Colors.primary.main,
-            dotColor: Colors.primary.main,
-            arrowColor: Colors.primary.main,
+            todayTextColor: Colors.primary.cyan,
+            selectedDayBackgroundColor: Colors.primary.cyan,
+            dotColor: Colors.primary.cyan,
+            arrowColor: Colors.primary.cyan,
           }}
         />
 
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.lg,
   },
   createButton: {
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
     paddingHorizontal: Layout.spacing.lg,
     paddingVertical: Layout.spacing.sm,
     borderRadius: Layout.borderRadius.md,
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.secondary,
   },
   familyChipSelected: {
-    backgroundColor: Colors.primary.light,
+    backgroundColor: Colors.primary.mint,
   },
   familyColorDot: {
     width: 12,
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   familyChipTextSelected: {
-    color: Colors.primary.main,
+    color: Colors.primary.cyan,
     fontWeight: '600',
   },
   viewToggle: {
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.primary,
   },
   viewButtonActive: {
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
   },
   viewButtonText: {
     fontSize: 14,

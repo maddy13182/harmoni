@@ -79,7 +79,7 @@ export default function SettingsScreen({
               onPress={option.onPress}
             >
               <View style={styles.settingIcon}>
-                <Ionicons name={option.icon as any} size={24} color={Colors.primary.main} />
+                <Ionicons name={option.icon as any} size={24} color={Colors.primary.cyan} />
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingTitle}>{option.title}</Text>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.primary.light + '20', // 20% opacity
+    backgroundColor: Colors.primary.mint + '20', // 20% opacity
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Layout.spacing.md,

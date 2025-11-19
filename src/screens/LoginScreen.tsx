@@ -236,21 +236,21 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <View style={styles.featuresContainer}>
           <View style={styles.featurePill}>
             <View style={styles.featureIcon}>
-              <MaterialIcons name="mic" size={16} color={Colors.primary.main} />
+              <MaterialIcons name="mic" size={16} color={Colors.primary.cyan} />
             </View>
             <Text style={styles.featurePillText}>Voice commands</Text>
           </View>
           
           <View style={styles.featurePill}>
             <View style={styles.featureIcon}>
-              <MaterialIcons name="chat-bubble-outline" size={16} color={Colors.primary.main} />
+              <MaterialIcons name="chat-bubble-outline" size={16} color={Colors.primary.cyan} />
             </View>
             <Text style={styles.featurePillText}>AI chat</Text>
           </View>
           
           <View style={styles.featurePill}>
             <View style={styles.featureIcon}>
-              <MaterialIcons name="forward-to-inbox" size={16} color={Colors.primary.main} />
+              <MaterialIcons name="forward-to-inbox" size={16} color={Colors.primary.cyan} />
             </View>
             <Text style={styles.featurePillText}>Email forwarding</Text>
           </View>
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 30,
-    backgroundColor: Colors.primary.main,
+    backgroundColor: Colors.primary.cyan,
     opacity: 0.06,
   },
   shape2: {
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.accent.mint,
+    backgroundColor: Colors.primary.mint,
     opacity: 0.08,
   },
   shape3: {
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 35,
-    backgroundColor: Colors.accent.coral,
+    backgroundColor: Colors.primary.coral,
     opacity: 0.05,
   },
   
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 20,
     fontWeight: '600',
-    color: Colors.primary.main,
+    color: Colors.primary.cyan,
     letterSpacing: 0.5,
     marginBottom: 32,
   },
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: Colors.primary.main + '15',
+    backgroundColor: Colors.primary.cyan + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
   privacyLink: {
-    color: Colors.primary.main,
+    color: Colors.primary.cyan,
     fontWeight: '500',
   },
 });
