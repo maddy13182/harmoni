@@ -61,6 +61,7 @@ export const AppNavigator: React.FC = () => {
           <PreferencesSetupScreen 
             onPreferencesCreated={handlers.handlePreferencesCreated}
             onError={handlers.handlePreferencesError}
+            onSignOut={handlers.handleSignOut}
           />
         );
       

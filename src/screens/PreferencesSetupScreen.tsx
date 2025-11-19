@@ -14,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import { Colors } from '../constants/Colors';
 import { Layout } from '../constants/Layout';
+import MenuModal from '../components/MenuModal';
+import { Ionicons } from '@expo/vector-icons';
 import { createUserPreferences, getCurrentUser } from '../services/foundryClient';
 
 interface PreferencesFormData {
@@ -36,13 +38,16 @@ interface PreferencesFormData {
 interface PreferencesSetupScreenProps {
   onPreferencesCreated: () => void;
   onError: (error: string) => void;
+  onSignOut: () => void;
 }
 
 export default function PreferencesSetupScreen({ 
   onPreferencesCreated, 
-  onError 
+  onError,
+  onSignOut
 }: PreferencesSetupScreenProps) {
   const [loading, setLoading] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [formData, setFormData] = useState<PreferencesFormData>({
     homeTimezone: '',
     userId: '',
@@ -60,9 +65,15 @@ export default function PreferencesSetupScreen({
     pushNotificationsEnabled: true,
   });
 
+  // Get current user for menu
+  const currentUser = getCurrentUser();
+  const userInfo = currentUser ? {
+    name: currentUser.displayName,
+    email: currentUser.email || '',
+  } : undefined;
+
   useEffect(() => {
-    // Get current user and set userId
-    const currentUser = getCurrentUser();
+    // Set userId
     if (currentUser) {
       setFormData(prev => ({
         ...prev,
@@ -179,6 +190,17 @@ export default function PreferencesSetupScreen({
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header with Menu Button */}
+      <View style={styles.topHeader}>
+        <Text style={styles.topHeaderTitle}>Preferences Setup</Text>
+        <TouchableOpacity 
+          style={styles.menuButton}
+          onPress={() => setMenuVisible(true)}
+        >
+          <Ionicons name="menu" size={24} color={Colors.text.primary} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.contentContainer}
@@ -409,6 +431,17 @@ export default function PreferencesSetupScreen({
           </Text>
         </View>
       </ScrollView>
+
+      {/* Menu Modal */}
+      <MenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onSignOut={onSignOut}
+        onSettings={() => {
+          console.log('Settings pressed');
+        }}
+        userInfo={userInfo}
+      />
     </SafeAreaView>
   );
 }
@@ -417,6 +450,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background.primary,
+  },
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.background.secondary,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.neutral.lightGray,
+  },
+  topHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+  menuButton: {
+    padding: 8,
   },
   scrollView: {
     flex: 1,

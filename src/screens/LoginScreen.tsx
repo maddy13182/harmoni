@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
-  Image,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -20,6 +20,8 @@ import {
   storeUserInfo,
 } from '../services/authService';
 
+const { width } = Dimensions.get('window');
+
 interface LoginScreenProps {
   onLoginSuccess: () => void;
 }
@@ -27,34 +29,81 @@ interface LoginScreenProps {
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Animations
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(50)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
+  const shape1Anim = React.useRef(new Animated.Value(0)).current;
+  const shape2Anim = React.useRef(new Animated.Value(0)).current;
+  const shape3Anim = React.useRef(new Animated.Value(0)).current;
 
   const { request, response, promptAsync } = useGoogleAuth();
 
-  console.log('LoginScreen rendered, request:', request ? 'exists' : 'null');
-
   useEffect(() => {
-    // Animate screen entrance
+    // Entrance animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 800,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 600,
+        duration: 800,
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Floating shape animations
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shape1Anim, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shape1Anim, {
+          toValue: 0,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shape2Anim, {
+          toValue: 1,
+          duration: 4000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shape2Anim, {
+          toValue: 0,
+          duration: 4000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shape3Anim, {
+          toValue: 1,
+          duration: 5000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shape3Anim, {
+          toValue: 0,
+          duration: 5000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   useEffect(() => {
     if (response?.type === 'success') {
-      console.log('Google auth success!', response);
       const { authentication } = response;
-      
       if (authentication?.accessToken) {
         handleAuthSuccess(authentication.accessToken);
       } else {
@@ -62,7 +111,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         setIsLoading(false);
       }
     } else if (response?.type === 'error') {
-      console.error('Google auth error:', response.error);
       setError('Authentication failed. Please try again.');
       setIsLoading(false);
     }
@@ -72,18 +120,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     try {
       setIsLoading(true);
       setError(null);
-
-      // Fetch user info from Google
       const userInfo = await fetchGoogleUserInfo(accessToken);
-
-      // Store auth data securely
       await storeAuthToken(accessToken);
       await storeUserInfo(userInfo);
-
-      // Navigate to main app
       onLoginSuccess();
     } catch (err) {
-      console.error('Auth error:', err);
       setError('Failed to complete sign in. Please try again.');
       setIsLoading(false);
     }
@@ -93,33 +134,76 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     try {
       setIsLoading(true);
       setError(null);
-      
-      console.log('Starting Google sign in...');
-      const result = await promptAsync();
-      console.log('Google sign in result:', result);
-      
-      // Add timeout to reset loading state if no response
+      await promptAsync();
       setTimeout(() => {
         if (isLoading) {
-          console.log('Sign in timeout - resetting loading state');
           setIsLoading(false);
           setError('Sign in timed out. Please try again.');
         }
-      }, 30000); // 30 second timeout
-      
+      }, 30000);
     } catch (err) {
-      console.error('Sign in error:', err);
       setError('Failed to initiate sign in. Please try again.');
       setIsLoading(false);
     }
   };
 
+  // Animated shape transforms
+  const shape1Transform = shape1Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 20],
+  });
+
+  const shape2Transform = shape2Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -15],
+  });
+
+  const shape3Transform = shape3Anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 25],
+  });
+
   return (
     <View style={styles.container}>
-      {/* Background Gradient */}
+      {/* Subtle gradient background */}
       <LinearGradient
-        colors={[Colors.background.primary, Colors.background.secondary]}
+        colors={['#FAFAFA', '#FFFFFF', '#F8F9FA']}
         style={styles.background}
+      />
+
+      {/* Abstract floating shapes */}
+      <Animated.View
+        style={[
+          styles.shape1,
+          {
+            transform: [
+              { translateY: shape1Transform },
+              { rotate: '15deg' },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.shape2,
+          {
+            transform: [
+              { translateY: shape2Transform },
+              { rotate: '-20deg' },
+            ],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.shape3,
+          {
+            transform: [
+              { translateY: shape3Transform },
+              { rotate: '25deg' },
+            ],
+          },
+        ]}
       />
 
       <Animated.View
@@ -131,36 +215,52 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           },
         ]}
       >
-        {/* Logo Section */}
-        <View style={styles.logoSection}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoEmoji}>🏠</Text>
-          </View>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          {/* App Name */}
           <Text style={styles.appName}>Harmoni</Text>
-          <Text style={styles.tagline}>Keep your family in sync</Text>
+          
+          {/* Hero Message */}
+          <Text style={styles.heroTitle}>
+            Finally, one app that{'\n'}keeps life in sync
+          </Text>
+          
+          <Text style={styles.heroSubtitle}>
+            AI-powered calendar that works the way you do.{'\n'}
+            Voice, chat, email—create events in seconds,{'\n'}
+            not minutes.
+          </Text>
         </View>
 
-        {/* Features List */}
+        {/* Key Features - Minimalist Pills */}
         <View style={styles.featuresContainer}>
-          <FeatureItem
-            icon="event"
-            text="Shared family calendar"
-          />
-          <FeatureItem
-            icon="people"
-            text="Coordinate with everyone"
-          />
-          <FeatureItem
-            icon="notifications"
-            text="Never miss important events"
-          />
+          <View style={styles.featurePill}>
+            <View style={styles.featureIcon}>
+              <MaterialIcons name="mic" size={16} color={Colors.primary.main} />
+            </View>
+            <Text style={styles.featurePillText}>Voice commands</Text>
+          </View>
+          
+          <View style={styles.featurePill}>
+            <View style={styles.featureIcon}>
+              <MaterialIcons name="chat-bubble-outline" size={16} color={Colors.primary.main} />
+            </View>
+            <Text style={styles.featurePillText}>AI chat</Text>
+          </View>
+          
+          <View style={styles.featurePill}>
+            <View style={styles.featureIcon}>
+              <MaterialIcons name="forward-to-inbox" size={16} color={Colors.primary.main} />
+            </View>
+            <Text style={styles.featurePillText}>Email forwarding</Text>
+          </View>
         </View>
 
         {/* Sign In Section */}
         <View style={styles.signInSection}>
           {error && (
             <View style={styles.errorContainer}>
-              <MaterialIcons name="error-outline" size={20} color={Colors.semantic.error} />
+              <MaterialIcons name="error-outline" size={18} color={Colors.semantic.error} />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -169,32 +269,23 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             style={[styles.googleButton, isLoading && styles.googleButtonDisabled]}
             onPress={handleGoogleSignIn}
             disabled={isLoading || !request}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
             {isLoading ? (
-              <ActivityIndicator color={Colors.text.primary} />
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <>
-                <MaterialIcons name="login" size={24} color={Colors.text.primary} />
-                <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                <MaterialIcons name="login" size={20} color="#FFFFFF" />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
               </>
             )}
           </TouchableOpacity>
 
-          {isLoading && (
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => {
-                setIsLoading(false);
-                setError('Sign in cancelled. Please try again.');
-              }}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          )}
-
           <Text style={styles.privacyText}>
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            By continuing, you agree to our{' '}
+            <Text style={styles.privacyLink}>Terms</Text>
+            {' & '}
+            <Text style={styles.privacyLink}>Privacy Policy</Text>
           </Text>
         </View>
       </Animated.View>
@@ -202,138 +293,166 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   );
 }
 
-interface FeatureItemProps {
-  icon: keyof typeof MaterialIcons.glyphMap;
-  text: string;
-}
-
-function FeatureItem({ icon, text }: FeatureItemProps) {
-  return (
-    <View style={styles.featureItem}>
-      <View style={styles.featureIconContainer}>
-        <MaterialIcons name={icon} size={24} color={Colors.primary.main} />
-      </View>
-      <Text style={styles.featureText}>{text}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   background: {
     ...StyleSheet.absoluteFillObject,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: Layout.spacing.xl,
-    paddingTop: Layout.spacing.xxxl * 2,
-    paddingBottom: Layout.spacing.xl,
+  
+  // Abstract shapes
+  shape1: {
+    position: 'absolute',
+    top: 100,
+    right: 30,
+    width: 120,
+    height: 120,
+    borderRadius: 30,
+    backgroundColor: Colors.primary.main,
+    opacity: 0.06,
   },
-  logoSection: {
-    alignItems: 'center',
-    marginBottom: Layout.spacing.xxxl,
-  },
-  logoContainer: {
+  shape2: {
+    position: 'absolute',
+    top: 200,
+    left: -20,
     width: 100,
     height: 100,
-    borderRadius: Layout.borderRadius.xl,
-    backgroundColor: Colors.primary.main,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Layout.spacing.lg,
-    ...Layout.shadow.lg,
+    borderRadius: 50,
+    backgroundColor: Colors.accent.mint,
+    opacity: 0.08,
   },
-  logoEmoji: {
-    fontSize: 56,
+  shape3: {
+    position: 'absolute',
+    bottom: 200,
+    right: -30,
+    width: 140,
+    height: 140,
+    borderRadius: 35,
+    backgroundColor: Colors.accent.coral,
+    opacity: 0.05,
+  },
+  
+  content: {
+    flex: 1,
+    paddingHorizontal: 32,
+    paddingTop: 100,
+    paddingBottom: 48,
+    justifyContent: 'space-between',
+  },
+  
+  // Hero Section
+  heroSection: {
+    alignItems: 'center',
   },
   appName: {
-    fontSize: Layout.fontSize.xxxl,
-    fontWeight: Layout.fontWeight.bold,
-    color: Colors.text.primary,
-    marginBottom: Layout.spacing.xs,
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.primary.main,
+    letterSpacing: 0.5,
+    marginBottom: 32,
   },
-  tagline: {
-    fontSize: Layout.fontSize.lg,
+  heroTitle: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: Colors.text.primary,
+    textAlign: 'center',
+    lineHeight: 44,
+    marginBottom: 20,
+    letterSpacing: -0.5,
+  },
+  heroSubtitle: {
+    fontSize: 17,
+    fontWeight: '400',
     color: Colors.text.secondary,
     textAlign: 'center',
+    lineHeight: 26,
+    letterSpacing: -0.2,
   },
+  
+  // Features Pills
   featuresContainer: {
-    marginBottom: Layout.spacing.xxxl,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
   },
-  featureItem: {
+  featurePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Layout.spacing.lg,
+    backgroundColor: Colors.background.secondary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 8,
   },
-  featureIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: Layout.borderRadius.md,
-    backgroundColor: Colors.background.tertiary,
+  featureIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.primary.main + '15',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Layout.spacing.md,
   },
-  featureText: {
-    fontSize: Layout.fontSize.md,
+  featurePillText: {
+    fontSize: 14,
+    fontWeight: '500',
     color: Colors.text.primary,
-    fontWeight: Layout.fontWeight.medium,
-    flex: 1,
+    letterSpacing: -0.1,
   },
+  
+  // Sign In Section
   signInSection: {
-    marginTop: 'auto',
+    gap: 16,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.semantic.error + '15',
-    padding: Layout.spacing.md,
-    borderRadius: Layout.borderRadius.md,
-    marginBottom: Layout.spacing.md,
+    backgroundColor: Colors.semantic.error + '10',
+    padding: 14,
+    borderRadius: 12,
+    gap: 10,
   },
   errorText: {
-    fontSize: Layout.fontSize.sm,
+    fontSize: 14,
     color: Colors.semantic.error,
-    marginLeft: Layout.spacing.sm,
     flex: 1,
+    fontWeight: '500',
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.neutral.white,
-    paddingVertical: Layout.spacing.md,
-    paddingHorizontal: Layout.spacing.lg,
-    borderRadius: Layout.borderRadius.lg,
-    ...Layout.shadow.md,
-    gap: Layout.spacing.sm,
-    minHeight: Layout.touchTarget.comfortable,
+    backgroundColor: Colors.text.primary,
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
   },
   googleButtonDisabled: {
     opacity: 0.6,
   },
   googleButtonText: {
-    fontSize: Layout.fontSize.lg,
-    fontWeight: Layout.fontWeight.semibold,
-    color: Colors.text.primary,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
   },
   privacyText: {
-    fontSize: Layout.fontSize.xs,
+    fontSize: 13,
     color: Colors.text.tertiary,
     textAlign: 'center',
-    marginTop: Layout.spacing.lg,
     lineHeight: 18,
+    letterSpacing: -0.1,
   },
-  cancelButton: {
-    marginTop: Layout.spacing.md,
-    padding: Layout.spacing.sm,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: Layout.fontSize.sm,
-    color: Colors.text.secondary,
-    textDecorationLine: 'underline',
+  privacyLink: {
+    color: Colors.primary.main,
+    fontWeight: '500',
   },
 });
