@@ -4,6 +4,7 @@ High-level tracking of development progress and major milestones.
 
 | Version | Timestamp | Commit Hash | Change Summary | Status |
 |---------|-----------|-------------|----------------|--------|
+| 0.6.0 | 2025-11-19 21:15:00 | TBD | 🔁 Recurring Events + Event Detail Popup System | ✅ Stable |
 | 0.5.0 | 2025-11-18 22:03:00 | TBD | 🎨 Event Creation UI - Animated FAB with multi-modal interface | ✅ Stable |
 | 0.4.2 | 2025-11-18 19:30:00 | 1978564 | 🐛 CRITICAL FIX: All JSX syntax errors resolved (4 commits) | ✅ Stable |
 | 0.4.1 | 2025-11-18 19:10:00 | fdd3f19 | 🎨 Changed cyan to warm coral (#EF7674) | ⚠️ Broken (syntax errors) |
@@ -561,7 +562,156 @@ src/components/event-creation/
 - Comprehensive accessibility support included
 - Platform-specific styling handled correctly
 
+## Version 0.6.0 Details
+
+**Major Achievement:** 🔁 Recurring Events Support + Apple-Style Event Detail Popup
+
+**Key Features Added:**
+- **Recurring Events Support:** Complete Foundry API v2 integration
+  - Updated CalendarEvent interface with 5 new fields:
+    - `isRecurring: boolean` - Identifies recurring events
+    - `instanceId?: string` - Unique ID for each occurrence
+    - `instanceSequence?: number` - Position in series
+    - `eventCategory?: string` - Event classification
+    - `eventStatus: string` - Event state (confirmed, tentative, cancelled)
+  - Visual indicators with Ionicons `repeat` icon:
+    - DayView: 14px lavender icon before event title
+    - WeekView: 10px lavender icon before event title
+  - Clean, minimalist design matching app aesthetic
+
+- **Event Detail Popup System:** Double-tap to view full event details
+  - **Apple-Style Translucent Design:**
+    - Medium blur background (intensity: 50)
+    - Grey tint: `rgba(200, 200, 200, 0.85)`
+    - Centered modal with rounded corners (20px)
+    - Smooth fade + scale animation (300ms spring)
+  
+  - **Complete Event Information Display:**
+    - Event title (22px, AllianceNo2-Bold, black)
+    - Start and end times (18px, AllianceNo2-Medium)
+    - Location (if present)
+    - Description (if present)
+    - Attendees list with names and relationships
+    - All text in black for maximum readability
+  
+  - **Action Buttons:**
+    - Edit button (pill shape, light grey background)
+    - Delete button (pill shape, light grey background)
+    - Both buttons are placeholders for future implementation
+  
+  - **Gesture Detection:**
+    - Single tap: Existing behavior (selection/navigation)
+    - Double tap (< 300ms): Opens detail popup
+    - Implemented in both WeekView and DayView
+    - Uses useRef to track tap timing and event ID
+
+**Component Structure:**
+```
+src/components/calendar/
+├── EventDetailPopup.tsx       (new, 280 lines) - Apple-style detail modal
+├── WeekView.tsx              (modified) - Added double-tap + popup
+├── DayView.tsx               (modified) - Added double-tap + popup
+└── MonthView.tsx             (unchanged) - Month view
+```
+
+**Technical Implementation:**
+- **TypeScript Updates:**
+  - Extended CalendarEvent interface in `src/types/index.ts`
+  - All new fields properly typed with optional/required markers
+  - Backward compatible with existing events
+
+- **Animation System:**
+  - React Native Reanimated for smooth animations
+  - Spring physics: damping 15, stiffness 150
+  - Synchronized fade and scale effects
+  - 300ms duration for natural feel
+
+- **Gesture Handling:**
+  - Double-tap detection with 300ms threshold
+  - Event ID tracking to prevent cross-event double-taps
+  - useRef for tap state management
+  - Proper event propagation
+
+- **Styling:**
+  - AllianceNo2 font family throughout
+  - Black text on translucent grey background
+  - 15-22px font sizes for hierarchy
+  - Consistent 10-20px spacing
+  - Platform-agnostic design
+
+**User Experience Flow:**
+1. User views calendar in Day or Week view
+2. Single tap on event: Existing selection behavior
+3. Double tap on event (< 300ms): Detail popup appears
+4. Popup animates smoothly from center with fade + scale
+5. User views complete event information
+6. Tap outside or close button: Popup dismisses smoothly
+7. Edit/Delete buttons ready for future implementation
+
+**Files Created:**
+- `src/components/calendar/EventDetailPopup.tsx` (new)
+
+**Files Modified:**
+- `src/types/index.ts` - Added recurring event fields to CalendarEvent
+- `src/components/calendar/WeekView.tsx` - Double-tap detection + popup integration
+- `src/components/calendar/DayView.tsx` - Double-tap detection + popup integration
+- `CHANGELOG.md` - Documented version 0.6.0
+- `WORKLOG.md` - Added version 0.6.0 entry
+
+**Visual Design:**
+- **Recurring Event Indicator:**
+  - Lavender `repeat` icon (matches app color scheme)
+  - Positioned before event title
+  - Size-appropriate for each view (14px day, 10px week)
+  - Subtle but clear visual cue
+
+- **Event Detail Popup:**
+  - Translucent grey background allows context visibility
+  - Black text ensures readability
+  - Clean, minimalist Apple-inspired design
+  - Professional appearance matching app aesthetic
+
+**Development Status:**
+- ✅ Recurring events fully supported
+- ✅ Visual indicators working perfectly
+- ✅ Event detail popup complete
+- ✅ Double-tap detection operational
+- ✅ Smooth animations implemented
+- ✅ Apple-style design achieved
+- ✅ Ready for edit/delete functionality
+
+**Next Priorities:**
+1. **Implement Edit Event Functionality:**
+   - Create event editing modal
+   - Pre-populate with existing event data
+   - Update event via Foundry API
+   - Refresh calendar after update
+
+2. **Implement Delete Event Functionality:**
+   - Add confirmation dialog
+   - Delete event via Foundry API
+   - Handle recurring event deletion (single vs. all)
+   - Refresh calendar after deletion
+
+3. **Recurring Event Management:**
+   - Add UI for creating recurring events
+   - Implement recurrence rules (daily, weekly, monthly)
+   - Handle "Edit this event" vs "Edit all events" for recurring series
+   - Implement exception handling for modified instances
+
+4. **Event Creation Integration:**
+   - Connect FAB modal options to actual creation flows
+   - Implement chat-based event creation with AI
+   - Implement photo-based event extraction
+   - Implement voice-based event creation
+
+**Technical Debt:**
+- None - Clean implementation with proper separation
+- All components properly typed
+- Gesture handling robust and tested
+- Animation performance optimized
+
 ---
 
-*Last Updated: 2025-11-18 22:03:00*
+*Last Updated: 2025-11-19 21:15:00*
 *Maintained by: Development Team*

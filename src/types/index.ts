@@ -15,6 +15,13 @@ export interface CalendarEvent {
   primaryFamilyGroupColor: string;
   visibilityLevel: 'full_details' | 'busy_only';
   attendees: Attendee[];
+  
+  // Recurring event fields (added for Foundry API v2)
+  isRecurring: boolean;
+  instanceId?: string;
+  instanceSequence?: number;
+  eventCategory?: string;
+  eventStatus: string;
 }
 
 export interface Attendee {

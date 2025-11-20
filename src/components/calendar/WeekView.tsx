@@ -5,7 +5,7 @@
  * Mobile-optimized: Horizontal scroll, compact event blocks
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import type { CalendarEvent, FamilyMemberCalendar } from '../../types';
 import { 
@@ -17,6 +17,7 @@ import {
 } from '../../utils/calendarHelpers';
 import { Colors } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
+import EventDetailPopup from './EventDetailPopup';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DAY_WIDTH = SCREEN_WIDTH / 7;
@@ -40,6 +41,9 @@ export default function WeekView({
   onEventTap,
 }: WeekViewProps) {
   const scrollViewRef = useRef<ScrollView>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const lastTapRef = useRef<{ eventId: string; time: number } | null>(null);
   
   // Get week dates starting from Sunday
   const weekStart = getWeekStartDate(selectedDate);
@@ -129,7 +133,30 @@ export default function WeekView({
   function isSelected(dateStr: string): boolean {
     return dateStr === selectedDate;
   }
-  
+
+  /**
+   * Handle event tap - detect double tap
+   */
+  function handleEventPress(event: CalendarEvent) {
+    const now = Date.now();
+    const lastTap = lastTapRef.current;
+
+    if (
+      lastTap &&
+      lastTap.eventId === event.eventId &&
+      now - lastTap.time < 300
+    ) {
+      // Double tap - show popup
+      setSelectedEvent(event);
+      setPopupVisible(true);
+      lastTapRef.current = null;
+    } else {
+      // Single tap
+      lastTapRef.current = { eventId: event.eventId, time: now };
+      onEventTap?.(event);
+    }
+  }
+
   /**
    * Render event block for a specific date
    */
@@ -167,12 +194,22 @@ export default function WeekView({
               borderLeftColor: event.primaryFamilyGroupColor,
             },
           ]}
-          onPress={() => onEventTap(event)}
+          onPress={() => handleEventPress(event)}
           activeOpacity={0.7}
         >
-          <Text style={styles.eventTitle} numberOfLines={1}>
-            {event.title}
-          </Text>
+          <View style={styles.titleContainer}>
+            {event.isRecurring && (
+              <Ionicons 
+                name="repeat" 
+                size={10} 
+                color={Colors.primary.lavender} 
+                style={styles.recurringIcon}
+              />
+            )}
+            <Text style={styles.eventTitle} numberOfLines={1}>
+              {event.title}
+            </Text>
+          </View>
           
           <Text style={styles.eventTime} numberOfLines={1}>
             {formatTime(event.startsAtUtc)}
@@ -277,6 +314,15 @@ export default function WeekView({
           ))}
         </View>
       </ScrollView>
+
+      {/* Event Detail Popup */}
+      <EventDetailPopup
+        visible={popupVisible}
+        event={selectedEvent}
+        onClose={() => setPopupVisible(false)}
+        onEdit={() => console.log('Edit:', selectedEvent?.eventId)}
+        onDelete={() => console.log('Delete:', selectedEvent?.eventId)}
+      />
     </View>
   );
 }
@@ -391,11 +437,19 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  recurringIcon: {
+    marginRight: 3,
+  },
   eventTitle: {
     fontSize: 11,
     fontWeight: '600',
     color: Colors.text.primary,
-    marginBottom: 2,
+    flex: 1,
   },
   eventTime: {
     fontSize: 9,

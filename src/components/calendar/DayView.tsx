@@ -5,10 +5,11 @@
  * Shows full event details with all attendees
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { CalendarEvent, FamilyMemberCalendar } from '../../types';
+import EventDetailPopup from './EventDetailPopup';
 import { 
   getEventsForDate, 
   sortEventsByTime,
@@ -37,6 +38,10 @@ export default function DayView({
   onEventTap,
 }: DayViewProps) {
   const scrollViewRef = useRef<ScrollView>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const lastTapRef = useRef<{ eventId: string; time: number } | null>(null);
+  
   const timeSlots = getTimeSlots();
   const dayEvents = sortEventsByTime(getEventsForDate(selectedDate, events));
   
@@ -80,6 +85,29 @@ export default function DayView({
     const today = new Date().toISOString().split('T')[0];
     return selectedDate === today;
   }
+
+  /**
+   * Handle event tap - detect double tap
+   */
+  function handleEventPress(event: CalendarEvent) {
+    const now = Date.now();
+    const lastTap = lastTapRef.current;
+
+    if (
+      lastTap &&
+      lastTap.eventId === event.eventId &&
+      now - lastTap.time < 300
+    ) {
+      // Double tap - show popup
+      setSelectedEvent(event);
+      setPopupVisible(true);
+      lastTapRef.current = null;
+    } else {
+      // Single tap
+      lastTapRef.current = { eventId: event.eventId, time: now };
+      onEventTap?.(event);
+    }
+  }
   
   /**
    * Render event card
@@ -111,11 +139,21 @@ export default function DayView({
             borderLeftColor: event.primaryFamilyGroupColor,
           },
         ]}
-        onPress={() => onEventTap?.(event)}
+        onPress={() => handleEventPress(event)}
         activeOpacity={0.7}
       >
-        {/* Event Title */}
-        <Text style={styles.eventTitle}>{event.title}</Text>
+        {/* Event Title with Recurring Icon */}
+        <View style={styles.titleContainer}>
+          {event.isRecurring && (
+            <Ionicons 
+              name="repeat" 
+              size={14} 
+              color={Colors.primary.lavender} 
+              style={styles.recurringIcon}
+            />
+          )}
+          <Text style={styles.eventTitle}>{event.title}</Text>
+        </View>
         
         {/* Time Range */}
         <Text style={styles.eventTime}>
@@ -231,6 +269,15 @@ export default function DayView({
           </View>
         </View>
       </ScrollView>
+
+      {/* Event Detail Popup */}
+      <EventDetailPopup
+        visible={popupVisible}
+        event={selectedEvent}
+        onClose={() => setPopupVisible(false)}
+        onEdit={() => console.log('Edit:', selectedEvent?.eventId)}
+        onDelete={() => console.log('Delete:', selectedEvent?.eventId)}
+      />
     </View>
   );
 }
@@ -342,11 +389,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Layout.spacing.xs / 2,
+  },
+  recurringIcon: {
+    marginRight: 6,
+  },
   eventTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.text.primary,
-    marginBottom: Layout.spacing.xs / 2,
+    flex: 1,
   },
   eventTime: {
     fontSize: 13,
