@@ -20,7 +20,7 @@ import {
 import { Colors } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
 
-const HOUR_HEIGHT = 80;
+const HOUR_HEIGHT = 60; // Match WeekView for consistency
 
 interface DayViewProps {
   selectedDate: string;
