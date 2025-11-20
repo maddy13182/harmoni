@@ -403,9 +403,10 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   timeLabel: {
-    fontSize: 11,
-    color: Colors.text.tertiary,
+    fontSize: 12,
+    color: Colors.text.primary,
     textAlign: 'right',
+    fontWeight: '700',
   },
   dayColumn: {
     flex: 1,

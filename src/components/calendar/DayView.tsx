@@ -339,10 +339,10 @@ const styles = StyleSheet.create({
     paddingRight: Layout.spacing.sm,
   },
   timeLabel: {
-    fontSize: 12,
-    color: Colors.text.tertiary,
+    fontSize: 13,
+    color: Colors.text.primary,
     textAlign: 'right',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   eventsColumn: {
     flex: 1,

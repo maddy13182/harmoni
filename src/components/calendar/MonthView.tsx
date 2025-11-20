@@ -125,7 +125,9 @@ export default function MonthView({
           textMonthFontWeight: '700',
           textDayFontSize: 16,
           textMonthFontSize: 18,
-          textDayHeaderFontWeight: '600',
+          textDayHeaderFontSize: 14,
+          textDayHeaderFontWeight: '700',
+          textSectionTitleColor: Colors.text.primary,
           dotColor: Colors.calendar.freeDay,
         }}
         style={styles.calendar}
