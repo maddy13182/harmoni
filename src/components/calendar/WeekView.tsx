@@ -204,7 +204,7 @@ export default function WeekView({
             {event.isRecurring && (
               <Ionicons 
                 name="repeat" 
-                size={10} 
+                size={8} 
                 color={Colors.primary.lavender} 
                 style={styles.recurringIcon}
               />
@@ -214,23 +214,17 @@ export default function WeekView({
             </Text>
           </View>
           
-          <Text style={styles.eventTime} numberOfLines={1}>
-            {formatTime(event.startsAtUtc)}
-          </Text>
-          
-          {/* Attendee indicator - mobile optimized */}
-          <View style={styles.attendeeIndicator}>
-            <View
-              style={[
-                styles.attendeeDot,
-                { backgroundColor: firstAttendee.color },
-              ]}
-            />
-            {attendeeCount > 1 && (
-              <View style={styles.attendeeCountBadge}>
-                <Text style={styles.attendeeCountText}>+{attendeeCount - 1}</Text>
-              </View>
-            )}
+          {/* Attendee Color Dots */}
+          <View style={styles.attendeeDotsContainer}>
+            {event.attendees.map((attendee, index) => (
+              <View
+                key={`${event.eventId}-${attendee.userId}-${index}`}
+                style={[
+                  styles.attendeeDot,
+                  { backgroundColor: attendee.color },
+                ]}
+              />
+            ))}
           </View>
         </TouchableOpacity>
       );
@@ -447,13 +441,18 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   recurringIcon: {
-    marginRight: 3,
+    marginRight: 2,
   },
   eventTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: Colors.text.primary,
     flex: 1,
+  },
+  attendeeDotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   eventTime: {
     fontSize: 9,

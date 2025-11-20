@@ -151,62 +151,25 @@ export default function DayView({
           {event.isRecurring && (
             <Ionicons 
               name="repeat" 
-              size={14} 
+              size={12} 
               color={Colors.primary.lavender} 
               style={styles.recurringIcon}
             />
           )}
-          <Text style={styles.eventTitle}>{event.title}</Text>
+          <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
         </View>
         
-        {/* Time Range */}
-        <Text style={styles.eventTime}>
-          {event.isAllDay 
-            ? 'All Day' 
-            : `${formatTime(event.startsAtUtc)} - ${formatTime(event.endsAtUtc)}`
-          }
-        </Text>
-        
-        {/* Attendees */}
-        <View style={styles.attendeesSection}>
+        {/* Attendee Color Dots */}
+        <View style={styles.attendeeDotsContainer}>
           {event.attendees.map((attendee, index) => (
-            <View key={`${event.eventId}-${attendee.userId}-${index}`} style={styles.attendeeRow}>
-              <View
-                style={[
-                  styles.attendeeDot,
-                  { backgroundColor: attendee.color },
-                ]}
-              />
-              <Text style={styles.attendeeName} numberOfLines={1}>
-                {attendee.displayName}
-              </Text>
-              <Text style={styles.attendeeRole}>
-                ({attendee.relationshipType})
-              </Text>
-              {isBusy && <Text style={styles.busyBadge}>BUSY</Text>}
-            </View>
+            <View
+              key={`${event.eventId}-${attendee.userId}-${index}`}
+              style={[
+                styles.attendeeDot,
+                { backgroundColor: attendee.color },
+              ]}
+            />
           ))}
-        </View>
-        
-        {/* Location (if not busy) */}
-        {!isBusy && event.location && (
-          <Text style={styles.location} numberOfLines={1}>
-            📍 {event.location}
-          </Text>
-        )}
-        
-        {/* Description (if not busy) */}
-        {!isBusy && event.description && (
-          <Text style={styles.description} numberOfLines={2}>
-            {event.description}
-          </Text>
-        )}
-        
-        {/* Calendar Badge */}
-        <View style={styles.calendarBadge}>
-          <Text style={styles.calendarBadgeText}>
-            [{event.primaryFamilyGroupName}]
-          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -400,13 +363,18 @@ const styles = StyleSheet.create({
     marginBottom: Layout.spacing.xs / 2,
   },
   recurringIcon: {
-    marginRight: 6,
+    marginRight: 4,
   },
   eventTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: Colors.text.primary,
     flex: 1,
+  },
+  attendeeDotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   eventTime: {
     fontSize: 13,
