@@ -127,7 +127,8 @@ export default function DayView({
     
     // Calculate position from midnight (hour 0)
     const top = startHour * HOUR_HEIGHT;
-    const height = Math.max(60, (endHour - startHour) * HOUR_HEIGHT);
+    // Calculate exact height based on duration (minimum 40px for very short events)
+    const height = Math.max(40, (endHour - startHour) * HOUR_HEIGHT);
     
     const isBusy = event.visibilityLevel === 'busy_only';
     
@@ -138,7 +139,7 @@ export default function DayView({
           styles.eventCard,
           {
             top,
-            minHeight: height,
+            height, // Use height instead of minHeight for exact sizing
             borderLeftColor: event.primaryFamilyGroupColor,
           },
         ]}
