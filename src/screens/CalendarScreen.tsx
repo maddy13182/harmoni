@@ -274,12 +274,8 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   // ============================================
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
+      {/* Fixed Header Section - Does not scroll */}
+      <View style={styles.fixedHeaderSection}>
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -390,72 +386,72 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
             </TouchableOpacity>
           ))}
         </View>
+      </View>
 
-        {/* CALENDAR VIEWS */}
-        <View style={styles.calendarContainer}>
-          {viewType === 'month' && (
-            <MonthView
-              selectedDate={selectedDate}
-              events={calendarData?.events || []}
-              familyMembers={allFamilyMembers}
-              onDateSelect={handleDateSelect}
-              onEventTap={handleEventTap}
-            />
-          )}
+      {/* Scrollable Calendar Views Section - Only calendar content scrolls */}
+      <View style={styles.calendarContainer}>
+        {viewType === 'month' && (
+          <MonthView
+            selectedDate={selectedDate}
+            events={calendarData?.events || []}
+            familyMembers={allFamilyMembers}
+            onDateSelect={handleDateSelect}
+            onEventTap={handleEventTap}
+          />
+        )}
 
-          {viewType === 'week' && (
-            <WeekView
-              selectedDate={selectedDate}
-              events={calendarData?.events || []}
-              familyMembers={allFamilyMembers}
-              onDateSelect={handleDateSelect}
-              onEventTap={handleEventTap}
-            />
-          )}
+        {viewType === 'week' && (
+          <WeekView
+            selectedDate={selectedDate}
+            events={calendarData?.events || []}
+            familyMembers={allFamilyMembers}
+            onDateSelect={handleDateSelect}
+            onEventTap={handleEventTap}
+          />
+        )}
 
-          {viewType === 'day' && (
-            <DayView
-              selectedDate={selectedDate}
-              events={calendarData?.events || []}
-              familyMembers={allFamilyMembers}
-              onDateSelect={handleDateSelect}
-              onEventTap={handleEventTap}
+        {viewType === 'day' && (
+          <DayView
+            selectedDate={selectedDate}
+            events={calendarData?.events || []}
+            familyMembers={allFamilyMembers}
+            onDateSelect={handleDateSelect}
+            onEventTap={handleEventTap}
+          />
+        )}
+      </View>
+
+      {/* LEGEND - Collapsible for month view only - Fixed at bottom */}
+      {viewType === 'month' && (
+        <View style={styles.collapsibleSection}>
+          <TouchableOpacity 
+            style={styles.pillButton}
+            onPressIn={() => setLegendExpanded(true)}
+            onPressOut={() => setLegendExpanded(false)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.pillButtonText}>Legend</Text>
+            <Ionicons 
+              name={legendExpanded ? "chevron-up" : "chevron-down"} 
+              size={16} 
+              color={Colors.primary.lavender} 
             />
+          </TouchableOpacity>
+          
+          {legendExpanded && (
+            <View style={styles.expandedContent}>
+              <View style={styles.dotLegendRow}>
+                <View style={[styles.legendDot, { backgroundColor: Colors.calendar.freeDay }]} />
+                <Text style={styles.dotLegendText}>Free day (no events)</Text>
+              </View>
+              <View style={styles.dotLegendRow}>
+                <View style={[styles.legendDot, { backgroundColor: Colors.primary.coral }]} />
+                <Text style={styles.dotLegendText}>Someone has events (see color below)</Text>
+              </View>
+            </View>
           )}
         </View>
-
-        {/* LEGEND - Collapsible for month view only */}
-        {viewType === 'month' && (
-          <View style={styles.collapsibleSection}>
-            <TouchableOpacity 
-              style={styles.pillButton}
-              onPressIn={() => setLegendExpanded(true)}
-              onPressOut={() => setLegendExpanded(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.pillButtonText}>Legend</Text>
-              <Ionicons 
-                name={legendExpanded ? "chevron-up" : "chevron-down"} 
-                size={16} 
-                color={Colors.primary.lavender} 
-              />
-            </TouchableOpacity>
-            
-            {legendExpanded && (
-              <View style={styles.expandedContent}>
-                <View style={styles.dotLegendRow}>
-                  <View style={[styles.legendDot, { backgroundColor: Colors.calendar.freeDay }]} />
-                  <Text style={styles.dotLegendText}>Free day (no events)</Text>
-                </View>
-                <View style={styles.dotLegendRow}>
-                  <View style={[styles.legendDot, { backgroundColor: Colors.primary.coral }]} />
-                  <Text style={styles.dotLegendText}>Someone has events (see color below)</Text>
-                </View>
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
+      )}
 
       {/* FLOATING ACTION BUTTON */}
       <FloatingActionButton onPress={() => setEventCreationModalVisible(true)} />
@@ -491,8 +487,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background.primary,
   },
-  scrollView: {
-    flex: 1,
+  fixedHeaderSection: {
+    backgroundColor: Colors.background.secondary,
   },
   loadingContainer: {
     flex: 1,
