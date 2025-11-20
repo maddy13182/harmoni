@@ -221,14 +221,14 @@ export function getFreeDays(
 // ===== TIME SLOT UTILITIES =====
 
 /**
- * Get time slots for day/week view (6 AM - 11 PM)
+ * Get time slots for day/week view (12 AM - 11 PM, full 24 hours)
  * @returns Array of time slot objects
  */
 export function getTimeSlots(): Array<{ hour: number; label: string }> {
   const slots: Array<{ hour: number; label: string }> = [];
   
-  // 6 AM to 11 PM (18 hours)
-  for (let hour = 6; hour <= 23; hour++) {
+  // 12 AM to 11 PM (24 hours)
+  for (let hour = 0; hour <= 23; hour++) {
     const isPM = hour >= 12;
     const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
     const label = `${displayHour}${isPM ? 'p' : 'a'}`;

@@ -45,17 +45,22 @@ export default function DayView({
   const timeSlots = getTimeSlots();
   const dayEvents = sortEventsByTime(getEventsForDate(selectedDate, events));
   
-  // Scroll to current time on mount
+  // Scroll to 6 AM by default (or current time if between 6 AM - 11 PM)
   useEffect(() => {
     const now = new Date();
     const currentHour = now.getHours();
     
+    // Default to 6 AM (hour 6 from midnight = 6 * HOUR_HEIGHT)
+    let scrollPosition = 6 * HOUR_HEIGHT;
+    
+    // If current time is between 6 AM and 11 PM, scroll to current hour
     if (currentHour >= 6 && currentHour <= 23) {
-      const scrollPosition = (currentHour - 6) * HOUR_HEIGHT;
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: scrollPosition, animated: true });
-      }, 100);
+      scrollPosition = currentHour * HOUR_HEIGHT;
     }
+    
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: scrollPosition, animated: true });
+    }, 100);
   }, [selectedDate]);
   
   /**
@@ -116,14 +121,12 @@ export default function DayView({
     const startDate = new Date(event.startsAtUtc);
     const endDate = new Date(event.endsAtUtc);
     
-    // Calculate position
+    // Calculate position (24-hour support: 12 AM - 11 PM)
     const startHour = startDate.getHours() + startDate.getMinutes() / 60;
     const endHour = endDate.getHours() + endDate.getMinutes() / 60;
     
-    // Only show events within 6 AM - 11 PM range
-    if (endHour < 6 || startHour > 23) return null;
-    
-    const top = Math.max(0, (startHour - 6) * HOUR_HEIGHT);
+    // Calculate position from midnight (hour 0)
+    const top = startHour * HOUR_HEIGHT;
     const height = Math.max(60, (endHour - startHour) * HOUR_HEIGHT);
     
     const isBusy = event.visibilityLevel === 'busy_only';
@@ -210,7 +213,7 @@ export default function DayView({
   
   return (
     <View style={styles.container}>
-      {/* Navigation Header */}
+      {/* Sticky Navigation Header - Does not scroll */}
       <View style={styles.navigationHeader}>
         <TouchableOpacity onPress={goToPreviousDay} style={styles.navButton}>
           <Ionicons name="chevron-back" size={24} color={Colors.primary.coral} />
@@ -230,7 +233,7 @@ export default function DayView({
         </TouchableOpacity>
       </View>
       
-      {/* Timeline */}
+      {/* Scrollable Timeline - Only this section scrolls */}
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
@@ -352,7 +355,7 @@ const styles = StyleSheet.create({
   hourLine: {
     height: HOUR_HEIGHT,
     borderTopWidth: 1,
-    borderTopColor: Colors.neutral.lightGray,
+    borderTopColor: '#2C5F8D', // Navy blue
   },
   eventsContainer: {
     position: 'absolute',
