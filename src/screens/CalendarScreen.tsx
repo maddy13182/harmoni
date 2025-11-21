@@ -331,15 +331,14 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
               <View>
                 <TouchableOpacity 
                   style={styles.inlinePillButton}
-                  onPressIn={() => setWhosWhoExpanded(true)}
-                  onPressOut={() => setWhosWhoExpanded(false)}
+                  onPress={() => setWhosWhoExpanded(!whosWhoExpanded)}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.inlinePillButtonText}>Who's Who</Text>
                   <Ionicons 
                     name={whosWhoExpanded ? "chevron-up" : "chevron-down"} 
-                    size={14} 
-                    color={Colors.primary.lavender} 
+                    size={16} 
+                    color={Colors.primary.coral} 
                   />
                 </TouchableOpacity>
                 
@@ -411,8 +410,8 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         </View>
       </View>
 
-      {/* Scrollable Calendar Views Section - Only calendar content scrolls */}
-      <View style={styles.calendarContainer}>
+      {/* Scrollable Calendar Views Section - Week/Day need flex, Month doesn't */}
+      <View style={[styles.calendarContainer, (viewType === 'week' || viewType === 'day') && styles.calendarContainerScrollable]}>
         {viewType === 'month' && (
           <MonthView
             selectedDate={selectedDate}
@@ -444,32 +443,31 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         )}
       </View>
 
-      {/* LEGEND - Collapsible for month view only - Fixed at bottom */}
+      {/* LEGEND - Collapsible for month view only - Positioned after calendar */}
       {viewType === 'month' && (
-        <View style={styles.collapsibleSection}>
+        <View style={styles.legendSection}>
           <TouchableOpacity 
-            style={styles.pillButton}
-            onPressIn={() => setLegendExpanded(true)}
-            onPressOut={() => setLegendExpanded(false)}
+            style={styles.legendButton}
+            onPress={() => setLegendExpanded(!legendExpanded)}
             activeOpacity={0.7}
           >
-            <Text style={styles.pillButtonText}>Legend</Text>
+            <Text style={styles.legendButtonText}>Legend</Text>
             <Ionicons 
               name={legendExpanded ? "chevron-up" : "chevron-down"} 
-              size={16} 
-              color={Colors.primary.lavender} 
+              size={18} 
+              color={Colors.text.inverse} 
             />
           </TouchableOpacity>
           
           {legendExpanded && (
-            <View style={styles.expandedContent}>
-              <View style={styles.dotLegendRow}>
-                <View style={[styles.legendDot, { backgroundColor: Colors.calendar.freeDay }]} />
-                <Text style={styles.dotLegendText}>Free day (no events)</Text>
+            <View style={styles.legendContent}>
+              <View style={styles.legendBlock}>
+                <View style={[styles.legendColorBar, { backgroundColor: Colors.calendar.freeDay }]} />
+                <Text style={styles.legendBlockText}>Free day (no events)</Text>
               </View>
-              <View style={styles.dotLegendRow}>
-                <View style={[styles.legendDot, { backgroundColor: Colors.primary.coral }]} />
-                <Text style={styles.dotLegendText}>Someone has events (see color below)</Text>
+              <View style={styles.legendBlock}>
+                <View style={[styles.legendColorBar, { backgroundColor: Colors.primary.coral }]} />
+                <Text style={styles.legendBlockText}>Someone has events (see color below)</Text>
               </View>
             </View>
           )}
@@ -614,17 +612,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.background.primary,
-    paddingHorizontal: Layout.spacing.sm,
-    paddingVertical: Layout.spacing.xs / 2,
+    paddingHorizontal: Layout.spacing.md,
+    paddingVertical: Layout.spacing.xs,
     borderRadius: Layout.borderRadius.round,
     borderWidth: 1,
-    borderColor: Colors.primary.lavender,
+    borderColor: Colors.primary.coral,
   },
   inlinePillButtonText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
-    color: Colors.primary.lavender,
-    marginRight: Layout.spacing.xs / 2,
+    color: Colors.primary.coral,
+    marginRight: Layout.spacing.xs,
   },
   absoluteExpandedContent: {
     position: 'absolute',
@@ -698,6 +696,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   calendarContainer: {
+    // Base style for all views
+  },
+  calendarContainerScrollable: {
+    // Add flex: 1 for Week and Day views that need scrolling
     flex: 1,
   },
   collapsibleSection: {
@@ -777,5 +779,50 @@ const styles = StyleSheet.create({
   dotLegendText: {
     fontSize: 14,
     color: Colors.text.primary,
+  },
+  legendSection: {
+    backgroundColor: Colors.background.secondary,
+    paddingHorizontal: Layout.spacing.md,
+    paddingVertical: Layout.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.neutral.lightGray,
+  },
+  legendButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.primary.coral,
+    paddingHorizontal: Layout.spacing.md,
+    paddingVertical: Layout.spacing.sm,
+    borderRadius: Layout.borderRadius.md,
+  },
+  legendButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.text.inverse,
+  },
+  legendContent: {
+    marginTop: Layout.spacing.sm,
+    gap: Layout.spacing.xs,
+  },
+  legendBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background.primary,
+    padding: Layout.spacing.sm,
+    borderRadius: Layout.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary.coral,
+  },
+  legendColorBar: {
+    width: 4,
+    height: 24,
+    borderRadius: 2,
+    marginRight: Layout.spacing.sm,
+  },
+  legendBlockText: {
+    fontSize: 14,
+    color: Colors.text.primary,
+    flex: 1,
   },
 });

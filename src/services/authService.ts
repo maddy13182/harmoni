@@ -3,6 +3,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
 import { clearUserCache, getCurrentUserId, clearPreferencesCache } from './foundryClient';
+import { clearFoundryUserCache } from './persistentUserCache';
 
 // Enable web browser to close after authentication
 WebBrowser.maybeCompleteAuthSession();
@@ -156,11 +157,13 @@ export async function isAuthenticated(): Promise<boolean> {
 
 /**
  * Sign out user - clears auth data, user cache, and preferences cache
+ * Now also clears persistent Foundry user cache
  */
 export async function signOut(): Promise<void> {
   console.log('🚪 Signing out user...');
   
-  // Get current user ID before clearing cache (needed to clear preferences)
+  // Get Google user info before clearing (needed for cache keys)
+  const googleUserInfo = await getUserInfo();
   const userId = getCurrentUserId();
   
   // Clear secure storage (auth tokens and user info)
@@ -168,6 +171,17 @@ export async function signOut(): Promise<void> {
   
   // Clear in-memory user cache
   clearUserCache();
+  
+  // Clear persistent Foundry user cache (SecureStore) using Google ID
+  if (googleUserInfo?.id) {
+    try {
+      await clearFoundryUserCache(googleUserInfo.id);
+      console.log('🧹 Persistent Foundry user cache cleared for googleUserId:', googleUserInfo.id);
+    } catch (error) {
+      console.error('⚠️ Error clearing Foundry user cache:', error);
+      // Don't throw - continue with sign out
+    }
+  }
   
   // Clear preferences cache for security and privacy
   if (userId) {
@@ -180,5 +194,5 @@ export async function signOut(): Promise<void> {
     }
   }
   
-  console.log('✅ User signed out successfully');
+  console.log('✅ User signed out successfully - all caches cleared');
 }

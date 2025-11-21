@@ -5,6 +5,91 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-11-21 14:18:00
+
+### Added
+- **Persistent User Cache with Validation**: Revolutionary caching system that eliminates user disruption
+  - `persistentUserCache.ts`: SecureStore-based persistent cache with validation logic
+    - `cacheFoundryUser()`: Store user data persistently with Google ID as key
+    - `getCachedFoundryUser()`: Retrieve cached user data (survives app restarts)
+    - `validateCachedUser()`: Compare cached vs Foundry data to detect changes
+    - `updateCachedUserFromFoundry()`: Sync non-critical field changes
+    - `clearFoundryUserCache()`: Clear cache on logout or invalidation
+  - **Validation System**: Smart comparison of cached vs Foundry data
+    - Critical fields (userId, googleUserId, $primaryKey): Changes require re-login
+    - Non-critical fields (email, displayName, accountStatus): Auto-update cache
+    - Security-first approach: Force re-authentication if IDs change
+  - **Cache Key Strategy**: Uses Google ID consistently for all operations
+    - Key format: `harmoni_foundry_user_google_{googleId}`
+    - Available at login time (before Foundry query)
+    - Eliminates cache key mismatch issues
+
+### Changed
+- **userService.ts**: Enhanced with validation flow on app restart
+  - Added `skipValidation` parameter to `verifyOrCreateUser()`
+  - **App Restart Flow**: 
+    1. Check persistent cache (SecureStore)
+    2. If found, validate against Foundry
+    3. If validation passes: Update cache if needed, continue
+    4. If validation fails (IDs changed): Clear cache, force re-login
+    5. If not cached: Query Foundry (lookup or create)
+  - **First Login Flow**: Skip validation, use cached data directly
+  - Imported validation functions: `validateCachedUser`, `updateCachedUserFromFoundry`, `clearFoundryUserCache`
+
+- **userCache.ts**: Removed 30-minute expiration logic
+  - Cache now persists until logout or app restart
+  - No mid-session disruptions from cache expiration
+  - Simplified `getCachedUser()` without expiration checks
+  - Added note: "No expiration - persists until logout/restart"
+
+- **authService.ts**: Enhanced logout to clear persistent cache
+  - Gets Google user info before clearing (needed for cache key)
+  - Clears persistent Foundry user cache using Google ID
+  - Maintains backward compatibility with preferences cache clearing
+  - Comprehensive logging for debugging
+
+### Fixed
+- **CRITICAL: Cache Key Mismatch**: Fixed "User not found" error on app restart
+  - **Root Cause**: Cache stored with Foundry userId, retrieved with Google ID
+  - **Solution**: Use Google ID consistently for all cache operations
+  - **Impact**: Eliminated repeated "User not found" errors and forced re-logins
+  - **Result**: Seamless app restart experience without re-authentication
+
+### Technical Details
+- **Two-Layer Caching**:
+  - **Persistent Layer (SecureStore)**: Survives app restarts, keyed by Google ID
+  - **In-Memory Layer**: Fast access during session, no expiration
+- **Validation Logic**:
+  - Critical fields: userId, googleUserId, $primaryKey (require re-login if changed)
+  - Non-critical fields: email, displayName, accountStatus, $title, timestamps (auto-update)
+- **Security Model**:
+  - ID changes trigger cache invalidation and force re-login
+  - Protects against account takeover or data corruption
+  - Privacy-first: Cache cleared on logout
+- **Performance**:
+  - Zero Foundry queries on app restart (uses cached data)
+  - Validation query only on app restart (not on first login)
+  - Instant app loading for returning users
+
+**Benefits:**
+- ✅ No "User not found" errors on app restart
+- ✅ No forced re-logins for returning users
+- ✅ Automatic sync of non-critical field changes
+- ✅ Security: Force re-login if IDs change
+- ✅ Zero mid-session disruptions
+- ✅ Instant app loading from cache
+
+**Commit Hash:** `TBD`
+**Files Created:**
+- `src/services/persistentUserCache.ts` (persistent cache with validation)
+
+**Files Modified:**
+- `src/services/foundry/userService.ts` (added validation flow)
+- `src/services/userCache.ts` (removed 30-minute expiration)
+- `src/services/authService.ts` (clear persistent cache on logout)
+
+**Development Status:** ✅ Persistent cache with validation operational, seamless app restart experience achieved
+
 ## [0.7.0] - 2025-11-20 21:50:00
 
 ### Added

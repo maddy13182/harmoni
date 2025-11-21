@@ -22,7 +22,7 @@ export interface CachedUser {
 
 class UserCacheService {
   private cachedUser: CachedUser | null = null;
-  private cacheExpiry: number = 30 * 60 * 1000; // 30 minutes in milliseconds
+  // No expiration - cache persists until cleared (logout or app restart)
 
   /**
    * Cache user data from Foundry lookup or creation
@@ -92,7 +92,8 @@ class UserCacheService {
   }
 
   /**
-   * Get cached user data if available and not expired
+   * Get cached user data if available
+   * No expiration check - cache persists until cleared
    */
   getCachedUser(): CachedUser | null {
     if (!this.cachedUser) {
@@ -101,16 +102,11 @@ class UserCacheService {
     }
 
     const cacheAge = Date.now() - new Date(this.cachedUser.cachedAt).getTime();
-    if (cacheAge > this.cacheExpiry) {
-      console.log('📦 Cached user data expired, clearing cache');
-      this.clearCache();
-      return null;
-    }
-
     console.log('📦 Retrieved user from cache:', {
       userId: this.cachedUser.userId,
       displayName: this.cachedUser.displayName,
-      cacheAge: Math.round(cacheAge / 1000) + 's'
+      cacheAge: Math.round(cacheAge / 1000) + 's',
+      note: 'No expiration - persists until logout/restart'
     });
     
     return this.cachedUser;

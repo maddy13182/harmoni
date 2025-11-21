@@ -3,6 +3,14 @@ import { Osdk } from "@osdk/client";
 import { User, createuser } from "@familycalnderapp/sdk";
 import { foundryClient } from "./foundryConfig";
 import { userCache } from "../userCache";
+import { 
+  getCachedFoundryUser, 
+  cacheFoundryUser,
+  CachedFoundryUser,
+  validateCachedUser,
+  updateCachedUserFromFoundry,
+  clearFoundryUserCache
+} from "../persistentUserCache";
 
 // User management interfaces
 export interface FoundryUserCheckResult {
@@ -79,31 +87,131 @@ export async function createFoundryUser(googleProfile: any): Promise<any> {
 }
 
 /**
- * Verify user exists or create them automatically with caching
+ * Verify user exists or create them automatically with caching and validation
+ * 
+ * Strategy: "Cache with Validation"
+ * 1. Check persistent cache (SecureStore) first
+ * 2. If found, validate against Foundry (sync check)
+ * 3. If validation passes:
+ *    - Update cache if non-critical fields changed
+ *    - Continue with cached data
+ * 4. If validation fails (IDs changed):
+ *    - Clear cache and force re-login
+ * 5. If not cached, query Foundry (lookup or create)
+ * 6. Store in persistent cache + memory
+ * 
+ * @param googleProfile - Google user profile from OAuth
+ * @param skipValidation - Skip Foundry validation (for first login)
  */
-export async function verifyOrCreateUser(googleProfile: any): Promise<UserProvisioningResult> {
+export async function verifyOrCreateUser(
+  googleProfile: any,
+  skipValidation: boolean = false
+): Promise<UserProvisioningResult> {
   try {
     console.log('🔍 Starting user verification/creation process for:', googleProfile.name);
+    console.log('🔧 Skip validation:', skipValidation);
     
-    // Check cache first
-    const cachedUser = userCache.getCachedUser();
-    if (cachedUser && cachedUser.googleUserId === googleProfile.id) {
-      console.log('📦 User found in cache, skipping Foundry lookup');
+    // STEP 1: Check persistent cache first (SecureStore)
+    const persistentUser = await getCachedFoundryUser(googleProfile.id);
+    
+    if (persistentUser && !skipValidation) {
+      console.log('📦 User found in persistent cache (SecureStore)');
+      console.log('🔍 Validating cached data against Foundry...');
+      
+      // STEP 2: Query Foundry to validate cached data
+      const foundryUser = await findUserByGoogleId(googleProfile.id);
+      
+      if (!foundryUser) {
+        console.log('❌ User not found in Foundry - cache invalid');
+        console.log('🧹 Clearing invalid cache...');
+        await clearFoundryUserCache(googleProfile.id);
+        
+        return {
+          success: false,
+          created: false,
+          message: "User not found in Foundry. Please log in again.",
+          error: new Error('Cache invalidated - user not found in Foundry')
+        };
+      }
+      
+      // STEP 3: Validate cached data against Foundry data
+      const validation = validateCachedUser(persistentUser, foundryUser);
+      
+      if (validation.needsRelogin) {
+        // Critical fields changed - clear cache and force re-login
+        console.log('🚨 CRITICAL FIELDS CHANGED - Clearing cache and forcing re-login');
+        console.log('Changed fields:', validation.changes?.changedFields);
+        await clearFoundryUserCache(googleProfile.id);
+        
+        return {
+          success: false,
+          created: false,
+          message: "Your account information has changed. Please log in again.",
+          error: new Error('Cache invalidated - critical fields changed')
+        };
+      }
+      
+      if (validation.needsUpdate) {
+        // Non-critical fields changed - update cache and continue
+        console.log('📝 Non-critical fields changed - updating cache');
+        console.log('Changed fields:', validation.changes?.changedFields);
+        await updateCachedUserFromFoundry(googleProfile.id, foundryUser);
+        
+        // Load updated data to in-memory cache
+        const updatedUser = await getCachedFoundryUser(googleProfile.id);
+        if (updatedUser) {
+          userCache.cacheUser(updatedUser, updatedUser.source);
+        }
+        
+        return {
+          success: true,
+          user: foundryUser,
+          created: false,
+          message: `User data synced for ${googleProfile.name}`
+        };
+      }
+      
+      // Cache is valid and up-to-date
+      console.log('✅ Cache valid and up-to-date - using cached data');
+      userCache.cacheUser(persistentUser, persistentUser.source);
+      
       return {
         success: true,
-        user: cachedUser,
+        user: persistentUser,
         created: false,
-        message: `Found cached user record ${googleProfile.name} with userID ${cachedUser.userId}`
+        message: `Found cached user record ${googleProfile.name} with userID ${persistentUser.userId}`
       };
     }
     
-    // 1. Check if user exists by googleUserId property
+    if (persistentUser && skipValidation) {
+      // Skip validation (first login) - use cached data directly
+      console.log('📦 User found in cache - skipping validation (first login)');
+      userCache.cacheUser(persistentUser, persistentUser.source);
+      
+      return {
+        success: true,
+        user: persistentUser,
+        created: false,
+        message: `Found cached user record ${googleProfile.name} with userID ${persistentUser.userId}`
+      };
+    }
+    
+    console.log('📭 No persistent cache found - querying Foundry');
+    
+    // STEP 2: Check if user exists in Foundry by googleUserId property
     const existingUser = await findUserByGoogleId(googleProfile.id);
     
     if (existingUser) {
       console.log('👤 User found in Foundry:', existingUser);
       
-      // Cache the found user
+      // STEP 3: Store in persistent cache (SecureStore) using googleId as key
+      await cacheFoundryUser(
+        googleProfile.id,
+        existingUser,
+        'lookup'
+      );
+      
+      // Also cache in memory for fast access during session
       const cachedUserData = userCache.cacheUser(existingUser, 'lookup');
       
       return {
@@ -114,7 +222,7 @@ export async function verifyOrCreateUser(googleProfile: any): Promise<UserProvis
       };
     }
     
-    // 2. User doesn't exist, create them
+    // STEP 4: User doesn't exist, create them
     console.log('🔨 User not found, creating new user...');
     const result = await createFoundryUser(googleProfile);
     
@@ -129,7 +237,14 @@ export async function verifyOrCreateUser(googleProfile: any): Promise<UserProvis
       if (createdUser) {
         console.log('✅ Retrieved created user object:', createdUser);
         
-        // Cache the created user
+        // STEP 5: Store in persistent cache (SecureStore) using googleId as key
+        await cacheFoundryUser(
+          googleProfile.id,
+          createdUser,
+          'creation'
+        );
+        
+        // Also cache in memory for fast access during session
         const cachedUserData = userCache.cacheUser(createdUser, 'creation');
         
         return {
@@ -141,6 +256,10 @@ export async function verifyOrCreateUser(googleProfile: any): Promise<UserProvis
       } else {
         // Fallback: cache the creation result as-is
         console.log('⚠️  Could not fetch created user, using creation result');
+        
+        // Use googleId for persistent cache
+        await cacheFoundryUser(googleProfile.id, result, 'creation');
+        
         const cachedUserData = userCache.cacheUser(result, 'creation');
         
         return {
