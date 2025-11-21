@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.1] - 2025-11-21 14:57:00
 
+### Added
+- **New Dependencies**: Added expo-system-ui for system UI control
+  - `expo-system-ui`: ^6.0.8 (system UI customization)
+
 ### Changed
 - **Dependency Updates**: Updated core dependencies for compatibility and stability
   - `expo`: ~54.0.23 → ~54.0.25 (patch update for bug fixes)
@@ -18,7 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **App Configuration**: Updated app scheme for consistency
   - Changed scheme from `family_calanderapp` to `familycalendarapp` in app.json
+  - Updated Android manifest with corrected scheme
+  - Removed duplicate scheme `com.harmoni.familycalendar`
   - Improves URL scheme consistency across the application
+
+- **Android Permissions**: Added audio-related permissions for future features
+  - Added MODIFY_AUDIO_SETTINGS permission
+  - Added RECORD_AUDIO permission (for voice note feature)
+
+- **Native Build Files**: Regenerated native build files and resources
+  - Updated Android app icons and splash screens
+  - Updated iOS project configuration
+  - Regenerated resource files for both platforms
 
 ### Technical Details
 - **Version Strategy**: Pinned critical dependencies to specific versions to prevent breaking changes
