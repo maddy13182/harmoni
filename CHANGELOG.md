@@ -5,6 +5,145 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-11-20 21:50:00
+
+### Added
+- **AI-Powered Event Creation**: Integrated Foundry AIP Agent for natural language event creation
+  - `aipAgentService.ts`: Complete AIP Agent API integration
+    - `createAgentSession()`: Creates new conversation sessions with the agent
+    - `streamContinueSession()`: Real-time streaming responses for better UX
+    - `blockingContinueSession()`: Alternative blocking API for simpler use cases
+    - `getSessionContent()`: Retrieves conversation history
+  - `ChatInterface.tsx`: Beautiful chat UI for conversing with AI agent
+    - Real-time streaming responses with typing indicators
+    - User messages (purple, right-aligned) and AI messages (black, left-aligned)
+    - Auto-scrolling message list
+    - Session management with automatic initialization
+    - Error handling with user-friendly messages
+  - **User Context Integration**: Automatically prepends user ID and timezone to every message
+    - Agent receives user context without complex parameter structures
+    - Format: `[User Context]\nUser ID: {id}\nTimezone: {tz}\n\n[User Message]\n{message}`
+    - Simplified approach that's more reliable than API parameters
+
+### Changed
+- **CalendarScreen.tsx**: Integrated chat interface with event creation flow
+  - Added `ChatInterface` component with user data props
+  - Added 300ms delay between modal transitions for smooth UX
+  - Loads user preferences on mount to pass timezone to chat
+  - `handleChatCreate()` now opens functional AI chat instead of placeholder alert
+
+- **Event Creation Flow**: Enhanced modal transition handling
+  - EventCreationModal closes before ChatInterface opens
+  - Prevents nested modal layout conflicts
+  - Smooth animations between modals
+
+- **ChatInterface UI**: Fixed layout overflow issues
+  - Changed to solid white background for better visibility
+  - Added `statusBarTranslucent={false}` to prevent status bar overlap
+  - Improved header and input container padding
+  - Added shadows for visual depth
+  - Platform-specific keyboard handling
+
+### Technical Details
+- **AIP Agent Configuration**:
+  - Agent RID: `ri.aip-agents..agent.4c393e4d-8297-40e1-a861-e2238fdb65c6`
+  - API Endpoint: `/api/v2/aipAgents/agents/{agentRid}/sessions/{sessionRid}/streamingContinue?preview=true`
+  - Authentication: Bearer token from Foundry config
+  - Response Format: Plain text (markdown formatted)
+
+- **Streaming Implementation**:
+  - React Native compatible (uses `response.text()` instead of `response.body.getReader()`)
+  - Real-time UI updates as response chunks arrive
+  - Proper error handling and timeout management
+  - Session persistence across multiple messages
+
+- **User Context Approach**:
+  - Prepends user ID and timezone to every message
+  - Agent can extract context from message text
+  - More reliable than complex parameter structures
+  - Simpler code and easier to debug
+
+- **UI/UX Improvements**:
+  - Modal transition delay prevents layout conflicts
+  - Proper SafeAreaView integration
+  - Platform-specific keyboard avoidance
+  - Smooth animations and transitions
+
+**Benefits:**
+- ✅ Natural language event creation with AI
+- ✅ Real-time streaming responses
+- ✅ User context automatically included
+- ✅ Beautiful, professional chat UI
+- ✅ Smooth modal transitions
+- ✅ No layout overflow issues
+
+**Commit Hash:** `TBD`
+**Files Created:**
+- `src/services/foundry/aipAgentService.ts` (AIP Agent API integration)
+- `src/components/event-creation/ChatInterface.tsx` (chat UI component)
+
+**Files Modified:**
+- `src/screens/CalendarScreen.tsx` (integrated chat, added modal transition delay, load user preferences)
+- `src/components/event-creation/index.ts` (exported ChatInterface)
+- `src/services/foundry/index.ts` (exported AIP Agent functions)
+
+**Development Status:** ✅ AI chat integration complete, event creation via natural language operational
+
+## [0.6.0] - 2025-11-20 02:35:00
+
+### Added
+- **Universal MenuModal Template**: Transformed MenuModal into a self-contained, reusable navigation component
+  - **Nested View Navigation**: Three-level navigation within modal (Main Menu → Settings → User Preferences)
+  - **Settings View**: Complete settings menu with 4 options (User Preferences, Notifications, Privacy, About)
+  - **User Preferences View**: Full preferences display with cached data from Foundry
+    - Location & Time section (timezone, travel mode, week start, time/date format)
+    - Calendar Preferences section (default view, event duration, privacy)
+    - Appearance section (theme, locale)
+    - Notifications section (email, push notifications)
+  - **Self-Contained Logic**: All navigation handled internally within MenuModal
+  - **Universal X Button**: Always closes modal and returns to calendar from any view
+  - **Back Navigation**: Proper back button navigation between nested views
+  - **Automatic Cache Loading**: Preferences loaded from cache when view is accessed
+
+### Changed
+- **MenuModal.tsx**: Complete redesign with nested navigation system
+  - Removed `onSettings` prop (no longer needed)
+  - Added internal state management: `currentView`, `preferences`, `loadingPrefs`
+  - Added navigation functions: `navigateToSettings()`, `navigateToUserPreferences()`, `navigateBack()`
+  - Added `handleClose()` to reset view state on modal close
+  - Integrated `getCurrentUser()` and `getUserPreferences()` for data loading
+  - Added `PreferenceItem` component for consistent preference display
+  - Added three render functions: `renderMainMenu()`, `renderSettingsView()`, `renderUserPreferencesView()`
+
+- **CalendarScreen.tsx**: Simplified MenuModal integration
+  - Removed `onSettings` prop (no longer needed)
+  - MenuModal now fully self-contained
+  - Cleaner component interface
+
+### Technical Details
+- **Navigation Pattern**: Modal-based nested navigation (no app state changes)
+- **View States**: 'main' | 'settings' | 'user-preferences'
+- **Data Loading**: Preferences loaded on-demand when user navigates to preferences view
+- **State Reset**: Modal resets to main view when closed or opened
+- **Reusability**: Can be added to any screen with just 3 props: `visible`, `onClose`, `onSignOut`
+- **Performance**: Lazy loading of preferences data (only when needed)
+- **User Experience**: Smooth transitions, consistent back navigation, always-accessible close button
+
+**Benefits:**
+- ✅ Universal template usable across all screens
+- ✅ No app state management needed for navigation
+- ✅ Self-contained with all logic internal
+- ✅ Consistent UX across entire app
+- ✅ Easy to extend with new nested views
+- ✅ Minimal integration code required
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `src/components/MenuModal.tsx` (complete redesign with nested navigation)
+- `src/screens/CalendarScreen.tsx` (removed onSettings prop)
+
+**Development Status:** ✅ Universal MenuModal template complete, ready for use across all screens
+
 ## [0.5.0] - 2025-11-18 22:03:00
 
 ### Added

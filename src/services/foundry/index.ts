@@ -29,6 +29,7 @@ export type {
 export {
   getUserPreferences,
   createUserPreferences,
+  updateUserPreferences,
   checkUserPreferences,
   refreshUserPreferences,
 } from './preferencesService';
@@ -55,6 +56,20 @@ export {
   fetchFamilyGroups,
   fetchCalendarEvents,
 } from './calendarApi';
+
+// Export AIP Agent service functions
+export {
+  createAgentSession,
+  blockingContinueSession,
+  streamContinueSession,
+  getSessionContent,
+} from './aipAgentService';
+
+export type {
+  AgentSession,
+  AgentParameterInputs,
+  StreamChunk,
+} from './aipAgentService';
 
 // Export cache service functions (including preferences cache)
 export {

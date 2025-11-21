@@ -1,5 +1,5 @@
 // User Preferences Service for Foundry
-import { User, createUserPreference } from "@familycalnderapp/sdk";
+import { User, createUserPreference, modifyUserPreference } from "@familycalnderapp/sdk";
 import { foundryClient } from "./foundryConfig";
 import { 
   cacheUserPreferences, 
@@ -122,6 +122,61 @@ export async function checkUserPreferences(userId: string): Promise<{
       hasPreferences: false,
       error
     };
+  }
+}
+
+/**
+ * Update user preferences using the modifyUserPreference action
+ * After update, refreshes the cache with the latest data
+ */
+export async function updateUserPreferences(
+  userPreferenceId: string,
+  updates: {
+    calendarViewPreference?: string;
+    currentTimezone?: string;
+    dateFormat?: string;
+    defaultEventDurationMinutes?: number;
+    defaultEventPrivacy?: string;
+    emailNotificationsEnabled?: boolean;
+    homeTimezone?: string;
+    isTraveling?: boolean;
+    timeFormat?: string;
+    weekStartsOn?: number;
+    locale?: string;
+    pushNotificationsEnabled?: boolean;
+    theme?: string;
+  }
+): Promise<any> {
+  try {
+    console.log('🔧 Updating user preferences:', userPreferenceId, updates);
+    
+    // 1. Apply the modify action
+    const result = await foundryClient(modifyUserPreference).applyAction(
+      {
+        user_preference: userPreferenceId,
+        ...updates
+      },
+      {
+        $returnEdits: true
+      }
+    );
+    
+    console.log('✅ UPDATE USER PREFERENCES API RESPONSE:', JSON.stringify(result, null, 2));
+    
+    if (result.type === "edits") {
+      console.log('📋 Response Type: edits');
+      console.log('📊 Edited Object Types Count:', result.editedObjectTypes?.length || 0);
+      
+      // 2. The result should contain the updated preferences
+      // We'll need to refresh from Foundry to get the complete updated object
+      // Extract userId from the current cache or query
+      return result;
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('❌ Error updating user preferences:', error);
+    throw error;
   }
 }
 

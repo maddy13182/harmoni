@@ -21,13 +21,14 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { initializeCalendarAfterGroupCreation, loadCalendarEvents } from '../services/calendarService';
 import { getCurrentUserId, getCurrentUser } from '../services/foundry/cacheService';
+import { getUserPreferences } from '../services/foundry';
 import { Colors } from '../constants/Colors';
 import { Layout } from '../constants/Layout';
 import MenuModal from '../components/MenuModal';
 import MonthView from '../components/calendar/MonthView';
 import WeekView from '../components/calendar/WeekView';
 import DayView from '../components/calendar/DayView';
-import { FloatingActionButton, EventCreationModal } from '../components/event-creation';
+import { FloatingActionButton, EventCreationModal, ChatInterface } from '../components/event-creation';
 import type { CalendarEvent, FamilyGroup, CalendarViewResponse, FamilyMemberCalendar } from '../types';
 import { extractDate } from '../utils/calendarHelpers';
 
@@ -58,9 +59,12 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [whosWhoExpanded, setWhosWhoExpanded] = useState(false);
   const [eventCreationModalVisible, setEventCreationModalVisible] = useState(false);
+  const [chatInterfaceVisible, setChatInterfaceVisible] = useState(false);
+  const [userPreferences, setUserPreferences] = useState<any>(null);
 
   // Get current user info for menu
   const currentUser = getCurrentUser();
+  const userId = getCurrentUserId() || '';
   const userInfo = currentUser ? {
     name: currentUser.displayName,
     email: currentUser.email || '',
@@ -75,7 +79,23 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   // ============================================
   useEffect(() => {
     loadCalendar();
+    loadUserPreferences();
   }, []);
+
+  // ============================================
+  // LOAD USER PREFERENCES
+  // ============================================
+  async function loadUserPreferences() {
+    try {
+      const userId = getCurrentUserId();
+      if (!userId) return;
+
+      const prefs = await getUserPreferences(userId);
+      setUserPreferences(prefs);
+    } catch (error) {
+      console.error('[CalendarScreen] Failed to load user preferences:', error);
+    }
+  }
 
   // ============================================
   // RELOAD EVENTS WHEN SELECTION CHANGES
@@ -226,11 +246,14 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   }
 
   // ============================================
-  // EVENT CREATION HANDLERS (Placeholders)
+  // EVENT CREATION HANDLERS
   // ============================================
   function handleChatCreate() {
     setEventCreationModalVisible(false);
-    Alert.alert('Chat to Create', 'This feature will be implemented next!');
+    // Small delay to ensure first modal closes before opening chat
+    setTimeout(() => {
+      setChatInterfaceVisible(true);
+    }, 300);
   }
 
   function handlePhotoCreate() {
@@ -465,14 +488,24 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         onVoiceCreate={handleVoiceCreate}
       />
 
+      {/* CHAT INTERFACE */}
+      <ChatInterface
+        visible={chatInterfaceVisible}
+        onClose={() => setChatInterfaceVisible(false)}
+        onEventCreated={(eventData) => {
+          console.log('Event created:', eventData);
+          setChatInterfaceVisible(false);
+          // TODO: Refresh calendar events
+        }}
+        userId={userId}
+        userTimezone={userPreferences?.homeTimezone || 'UTC'}
+      />
+
       {/* MENU MODAL */}
       <MenuModal
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         onSignOut={onSignOut}
-        onSettings={() => {
-          console.log('Settings pressed');
-        }}
         userInfo={userInfo}
       />
     </SafeAreaView>
