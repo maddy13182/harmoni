@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2025-11-21 14:57:00
+
+### Changed
+- **Dependency Updates**: Updated core dependencies for compatibility and stability
+  - `expo`: ~54.0.23 → ~54.0.25 (patch update for bug fixes)
+  - `expo-file-system`: ~19.0.18 → ~19.0.19 (patch update)
+  - `@react-native-picker/picker`: ^2.11.4 → 2.11.1 (pinned to specific version for stability)
+  - `react-native-gesture-handler`: ^2.29.1 → ~2.28.0 (reverted to stable version)
+  - `react-native-screens`: ^4.18.0 → ~4.16.0 (reverted to stable version)
+  - Added `react-native-worklets`: 0.5.1 (required peer dependency)
+
+- **App Configuration**: Updated app scheme for consistency
+  - Changed scheme from `family_calanderapp` to `familycalendarapp` in app.json
+  - Improves URL scheme consistency across the application
+
+### Technical Details
+- **Version Strategy**: Pinned critical dependencies to specific versions to prevent breaking changes
+- **Peer Dependencies**: Added missing `react-native-worklets` to resolve peer dependency warnings
+- **Compatibility**: All updates maintain compatibility with React Native 0.81.5 and Expo SDK 54
+- **Package Lock**: Updated package-lock.json to reflect all dependency changes
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `package.json` (dependency version updates)
+- `package-lock.json` (lockfile updates)
+- `app.json` (scheme name update)
+
+**Development Status:** ✅ Dependencies updated, app scheme corrected
+
 ## [0.8.0] - 2025-11-21 14:18:00
 
 ### Added
