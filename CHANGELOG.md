@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Compatibility**: All updates maintain compatibility with React Native 0.81.5 and Expo SDK 54
 - **Package Lock**: Updated package-lock.json to reflect all dependency changes
 
-**Commit Hash:** `TBD`
+**Commit Hash:** `f25a872`
 **Files Modified:**
 - `package.json` (dependency version updates)
 - `package-lock.json` (lockfile updates)
