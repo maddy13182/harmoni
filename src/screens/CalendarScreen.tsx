@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { initializeCalendarAfterGroupCreation, loadCalendarEvents } from '../services/calendarService';
 import { getCurrentUserId, getCurrentUser } from '../services/foundry/cacheService';
 import { getUserPreferences } from '../services/foundry';
+import { getSelectedGroup } from '../services/familyGroupCache';
 import { Colors } from '../constants/Colors';
 import { Layout } from '../constants/Layout';
 import MenuModal from '../components/MenuModal';
@@ -61,6 +62,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   const [eventCreationModalVisible, setEventCreationModalVisible] = useState(false);
   const [chatInterfaceVisible, setChatInterfaceVisible] = useState(false);
   const [userPreferences, setUserPreferences] = useState<any>(null);
+  const [displayGroupName, setDisplayGroupName] = useState<string | undefined>(familyGroupName);
 
   // Get current user info for menu
   const currentUser = getCurrentUser();
@@ -80,7 +82,24 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   useEffect(() => {
     loadCalendar();
     loadUserPreferences();
+    loadGroupName();
   }, []);
+
+  // ============================================
+  // LOAD GROUP NAME FROM CACHE
+  // ============================================
+  async function loadGroupName() {
+    try {
+      if (!userId) return;
+      const selectedGroup = await getSelectedGroup(userId);
+      if (selectedGroup) {
+        setDisplayGroupName(selectedGroup.groupName);
+        console.log('[CalendarScreen] Loaded group name from cache:', selectedGroup.groupName);
+      }
+    } catch (error) {
+      console.error('[CalendarScreen] Error loading group name:', error);
+    }
+  }
 
   // ============================================
   // LOAD USER PREFERENCES
@@ -264,6 +283,23 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   function handleVoiceCreate() {
     setEventCreationModalVisible(false);
     Alert.alert('Voice Recording', 'This feature will be implemented next!');
+  }
+
+  // ============================================
+  // CALENDAR CHANGE HANDLERS
+  // ============================================
+  function handleCalendarChanged() {
+    console.log('📅 Calendar changed, reloading calendar...');
+    // Reload the entire calendar to get new default calendar
+    loadCalendar();
+    loadGroupName();
+  }
+
+  function handleCreateNewCalendar() {
+    console.log('➕ Create new calendar requested');
+    // This would navigate to FamilyGroupSetupScreen
+    // For now, just show an alert
+    Alert.alert('Create Calendar', 'Navigation to create calendar screen would happen here');
   }
 
   // ============================================
@@ -504,6 +540,8 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         onSignOut={onSignOut}
+        onCreateNewCalendar={handleCreateNewCalendar}
+        onCalendarChanged={handleCalendarChanged}
         userInfo={userInfo}
       />
     </SafeAreaView>

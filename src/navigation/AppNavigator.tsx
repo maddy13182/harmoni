@@ -18,6 +18,7 @@ import FamilyGroupCheckScreen from '../screens/FamilyGroupCheckScreen';
 import FamilyGroupSetupScreen from '../screens/FamilyGroupSetupScreen';
 import { getSelectedGroup } from '../services/familyGroupCache';
 import { useAppNavigation } from '../hooks/useAppNavigation';
+import { getCurrentUserId } from '../services/foundryClient';
 
 export const AppNavigator: React.FC = () => {
   const { appState, userInfo, setupResult, handlers } = useAppNavigation();
@@ -86,11 +87,12 @@ export const AppNavigator: React.FC = () => {
       
       case 'main':
         console.log('📱 DISPLAYING: CalendarScreen (Main App)');
-        const selectedGroup = getSelectedGroup();
+        // Get selected group asynchronously - we'll handle this in CalendarScreen
+        // For now, pass undefined and let CalendarScreen load it
         return (
           <CalendarScreen 
             onSignOut={handlers.handleSignOut}
-            familyGroupName={selectedGroup?.groupName}
+            familyGroupName={undefined}
           />
         );
       

@@ -137,6 +137,7 @@ export async function updateUserPreferences(
     dateFormat?: string;
     defaultEventDurationMinutes?: number;
     defaultEventPrivacy?: string;
+    defaultFamilyGroupId?: string;
     emailNotificationsEnabled?: boolean;
     homeTimezone?: string;
     isTraveling?: boolean;

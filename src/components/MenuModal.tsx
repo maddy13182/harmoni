@@ -24,11 +24,15 @@ import { Layout } from '../constants/Layout';
 import { getCurrentUser } from '../services/foundry/cacheService';
 import { getUserPreferences, updateUserPreferences, refreshUserPreferences } from '../services/foundryClient';
 import UserPreferencesEditor from './UserPreferencesEditor';
+import FamilyCalendarSelectorScreen from '../screens/FamilyCalendarSelectorScreen';
 
 interface MenuModalProps {
   visible: boolean;
   onClose: () => void;
   onSignOut: () => void;
+  onCreateNewCalendar?: () => void;
+  onCalendarChanged?: () => void;
+  navigation?: any;
   userInfo?: {
     name: string;
     email: string;
@@ -40,13 +44,14 @@ type ModalView = 'main' | 'settings' | 'user-preferences';
 
 const { width, height } = Dimensions.get('window');
 
-export default function MenuModal({ visible, onClose, onSignOut, userInfo }: MenuModalProps) {
+export default function MenuModal({ visible, onClose, onSignOut, onCreateNewCalendar, onCalendarChanged, navigation, userInfo }: MenuModalProps) {
   const slideAnim = React.useRef(new Animated.Value(width)).current;
   const [currentView, setCurrentView] = useState<ModalView>('main');
   const [preferences, setPreferences] = useState<any>(null);
   const [loadingPreferences, setLoadingPreferences] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCalendarSelector, setShowCalendarSelector] = useState(false);
   
   // Edit mode state for each preference
   const [editedPrefs, setEditedPrefs] = useState<any>({});
@@ -112,6 +117,32 @@ export default function MenuModal({ visible, onClose, onSignOut, userInfo }: Men
     }
   };
 
+  const handleOpenCalendarSelector = () => {
+    console.log('📅 Opening calendar selector...');
+    setShowCalendarSelector(true);
+  };
+
+  const handleCloseCalendarSelector = () => {
+    setShowCalendarSelector(false);
+  };
+
+  const handleCreateNewCalendar = () => {
+    setShowCalendarSelector(false);
+    handleClose();
+    setTimeout(() => {
+      if (onCreateNewCalendar) {
+        onCreateNewCalendar();
+      }
+    }, 300);
+  };
+
+  const handleCalendarChangedInternal = () => {
+    console.log('✅ Calendar changed, reloading...');
+    if (onCalendarChanged) {
+      onCalendarChanged();
+    }
+  };
+
   const formatValue = (value: any, type: 'boolean' | 'string' | 'number' = 'string') => {
     if (value === null || value === undefined) return 'Not set';
     
@@ -147,7 +178,7 @@ export default function MenuModal({ visible, onClose, onSignOut, userInfo }: Men
 
       {/* Menu Items */}
       <View style={styles.menuItems}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={handleOpenCalendarSelector}>
           <Ionicons name="calendar-outline" size={24} color="#EF7674" />
           <Text style={styles.menuItemText}>Calendar</Text>
           <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
@@ -417,6 +448,23 @@ export default function MenuModal({ visible, onClose, onSignOut, userInfo }: Men
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
+
+      {/* Calendar Selector Modal */}
+      {showCalendarSelector && (
+        <Modal
+          visible={showCalendarSelector}
+          animationType="slide"
+          presentationStyle="fullScreen"
+          onRequestClose={handleCloseCalendarSelector}
+        >
+          <FamilyCalendarSelectorScreen
+            onClose={handleCloseCalendarSelector}
+            onCreateNew={handleCreateNewCalendar}
+            onCalendarChanged={handleCalendarChangedInternal}
+            navigation={navigation}
+          />
+        </Modal>
+      )}
     </Modal>
   );
 }

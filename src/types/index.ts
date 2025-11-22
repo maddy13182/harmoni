@@ -124,6 +124,10 @@ export interface FamilyGroup {
   groupColor?: string;
   groupDescription?: string;
   createdAt?: string;
+  role?: string; // owner, admin, member, readonly
+  isActive?: boolean;
+  displayColor?: string;
+  relationshipType?: string;
 }
 
 export interface FamilyMembership {
@@ -150,7 +154,8 @@ export type RelationshipType =
   | 'mom'
   | 'son'
   | 'daughter'
-  | 'grandparent'
+  | 'grandpa'
+  | 'grandma'
   | 'relative'
   | 'friend'
   | 'other';

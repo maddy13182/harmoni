@@ -3,7 +3,158 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0).
+
+## [0.9.0] - 2025-11-22 16:30:00
+
+### Added
+- **Family Invitation System**: Complete invitation workflow for adding members to family calendars
+  - `invitationService.ts`: Foundry integration for invitation token management
+    - `createInvitationToken()`: Creates invitation tokens with email, role, and relationship
+    - `validateEmail()`: Email format validation
+    - `isGoogleEmail()`: Google account validation
+    - Handles duplicate invitation errors by extracting existing tokens
+    - Validates relationship types against Foundry schema
+  - `InviteMemberScreen.tsx`: Beautiful invitation creation UI
+    - Email input with validation
+    - Role picker (owner, admin, member, readonly)
+    - Relationship picker (dad, mom, son, daughter, grandpa, grandma, relative, friend, other)
+    - Native Share integration for invitation codes
+    - Success dialog with invitation token display
+    - Share message format: "Hello! Use this invite code [CODE] to join the family group "[GROUP NAME]" in the Harmoni app."
+  - `RolePicker.tsx`: Reusable role selection component
+    - Modal-based picker with role descriptions
+    - Icons for each role (shield, key, person, eye)
+    - Visual selection feedback
+  - `FamilyCalendarSelectorScreen.tsx`: Calendar management with invitation access
+    - Lists all family calendars with color indicators
+    - Switch between calendars
+    - "Invite" button for owners/admins on each calendar
+    - Opens InviteMemberScreen in modal
+    - Create new family calendar option
+
+- **Storage Management Utility**: Debug tool for cache clearing
+  - `clearAllStorage.ts`: Utility functions for clearing persistent data
+    - `clearAllPersistentStorage()`: Clears all SecureStore data
+    - `clearUserStorage()`: Clears storage for specific user
+    - Useful for debugging and testing
+
+### Changed
+- **MenuModal.tsx**: Enhanced with calendar selector integration
+  - Added "Switch Calendar" option in main menu
+  - Opens FamilyCalendarSelectorScreen in modal
+  - Allows switching between family calendars
+  - Create new calendar from menu
+
+- **CalendarScreen.tsx**: Integrated calendar selector
+  - Added calendar selector modal state management
+  - "Switch Calendar" accessible from menu
+  - Refreshes calendar data after switching
+  - Updated header with current calendar name
+
+- **RelationshipPicker.tsx**: Updated with valid Foundry relationship values
+  - Changed from "grandparent" to "grandpa" and "grandma"
+  - Matches Foundry schema requirements
+  - Prevents "Invalid relationship" errors
+
+- **app.json**: Fixed OAuth redirect scheme for Android
+  - Changed scheme from "familycalendarapp" to "com.harmoni.familycalendar"
+  - Matches Google Cloud Console configuration
+  - Ensures proper OAuth redirect on Android
+
+- **authService.ts**: Fixed Android OAuth redirect issue
+  - Added `makeRedirectUri()` import from expo-auth-session
+  - Explicitly set `redirectUri` in `useGoogleAuth()`
+  - Uses scheme: "com.harmoni.familycalendar"
+  - Resolves issue where app stayed on google.com after auth
+  - Added comprehensive logging for OAuth flow debugging
+
+- **LoginScreen.tsx**: Enhanced OAuth debugging
+  - Added detailed OAuth response logging
+  - Logs response type, full response object
+  - Tracks success/error states
+  - Helps diagnose OAuth flow issues
+
+- **Navigation**: Extended with invitation and calendar selector screens
+  - `AppNavigator.tsx`: Added navigation types for new screens
+  - `useAppNavigation.ts`: Added navigation handlers
+  - Proper modal presentation for invitation flow
+
+- **Types**: Extended with invitation-related types
+  - Updated `RelationshipType` with valid Foundry values
+  - Added invitation service types
+  - Proper TypeScript support throughout
+
+### Fixed
+- **CRITICAL: Android OAuth Redirect**: Fixed app not redirecting after Google Sign In
+  - **Root Cause**: Missing explicit `redirectUri` in OAuth configuration
+  - **Solution**: Added `makeRedirectUri()` with explicit scheme
+  - **Impact**: OAuth now properly redirects from Chrome back to app
+  - **Result**: Seamless Google Sign In on Android
+
+- **Invalid Relationship Error**: Fixed relationship validation errors
+  - Changed "grandparent" to "grandpa"/"grandma" in RelationshipPicker
+  - Matches Foundry schema requirements
+  - Prevents invitation creation failures
+
+- **Duplicate Invitation Handling**: Gracefully handles existing invitations
+  - Extracts existing token from error message
+  - Returns token to user instead of failing
+  - User-friendly message about existing invitation
+
+### Technical Details
+- **Invitation Token Format**: `inv_XXXXXXXXXXXXX` (extracted from Foundry response)
+- **Token Extraction**: From `result.addedObjects[0].primaryKey`
+- **Duplicate Detection**: Regex pattern `/Token ID: (inv_[a-zA-Z0-9]+)/`
+- **OAuth Redirect URI**: `com.harmoni.familycalendar://` (explicit scheme)
+- **Share API**: Native React Native Share for cross-platform sharing
+- **Modal Presentation**: Full-screen modals for invitation and calendar selector
+- **Role-Based Access**: Only owners/admins can invite members
+- **Relationship Validation**: Enforces valid Foundry relationship types
+
+**User Experience Flow:**
+1. Owner/admin opens calendar selector from menu
+2. Taps "Invite" button on a calendar
+3. Enters invitee email, selects role and relationship
+4. Taps "Send Invitation"
+5. Receives invitation code in success dialog
+6. Taps "Share Invitation" to send via native share
+7. Invitee receives code and can join family calendar
+
+**Benefits:**
+- ✅ Complete invitation workflow operational
+- ✅ Native share integration for easy code distribution
+- ✅ Role-based access control for invitations
+- ✅ Duplicate invitation handling
+- ✅ Android OAuth redirect fixed
+- ✅ Calendar switching functionality
+- ✅ Professional invitation UI
+
+**Commit Hash:** `TBD`
+**Files Created:**
+- `src/services/foundry/invitationService.ts` (invitation token management)
+- `src/screens/InviteMemberScreen.tsx` (invitation creation UI)
+- `src/screens/FamilyCalendarSelectorScreen.tsx` (calendar management)
+- `src/components/RolePicker.tsx` (role selection component)
+- `src/utils/clearAllStorage.ts` (storage management utility)
+
+**Files Modified:**
+- `src/services/authService.ts` (fixed OAuth redirect)
+- `src/screens/LoginScreen.tsx` (added OAuth debugging)
+- `src/components/MenuModal.tsx` (added calendar selector)
+- `src/components/RelationshipPicker.tsx` (fixed relationship values)
+- `src/screens/CalendarScreen.tsx` (integrated calendar selector)
+- `src/navigation/AppNavigator.tsx` (added new screens)
+- `src/hooks/useAppNavigation.ts` (added navigation handlers)
+- `src/types/index.ts` (updated relationship types)
+- `app.json` (fixed OAuth scheme)
+- `.gitignore` (added out.txt)
+- `android/app/src/main/res/values/strings.xml` (Android config)
+- `ios/Harmoni.xcodeproj/project.pbxproj` (iOS config)
+- `package.json` (dependency updates)
+- `package-lock.json` (lockfile updates)
+
+**Development Status:** ✅ Family invitation system complete, OAuth redirect fixed, ready for testing
 
 ## [0.8.1] - 2025-11-21 14:57:00
 

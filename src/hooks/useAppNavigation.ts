@@ -143,10 +143,16 @@ export const useAppNavigation = () => {
     setAppStateWithLogging('family-group-setup');
   };
 
-  const handleHasFamilyGroups = () => {
+  const handleHasFamilyGroups = async () => {
     console.log('✅ User has family groups, going to main app');
-    const selectedGroup = getSelectedGroup();
-    console.log('📋 Selected family group:', selectedGroup?.groupName);
+    
+    // Get current user to retrieve selected group
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const selectedGroup = await getSelectedGroup(currentUser.userId);
+      console.log('📋 Selected family group:', selectedGroup?.groupName);
+    }
+    
     setAppStateWithLogging('main');
   };
 

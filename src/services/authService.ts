@@ -2,8 +2,10 @@
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
+import { makeRedirectUri } from 'expo-auth-session';
 import { clearUserCache, getCurrentUserId, clearPreferencesCache } from './foundryClient';
 import { clearFoundryUserCache } from './persistentUserCache';
+import { clearFamilyGroupCache } from './familyGroupCache';
 
 // Enable web browser to close after authentication
 WebBrowser.maybeCompleteAuthSession();
@@ -34,10 +36,18 @@ const USER_KEY = 'harmoni_user_info';
  * This properly handles redirect URIs for both development and production
  */
 export const useGoogleAuth = () => {
+  // Generate the redirect URI explicitly
+  const redirectUri = makeRedirectUri({
+    scheme: 'com.harmoni.familycalendar',
+  });
+
+  console.log('🔗 Using redirect URI:', redirectUri);
+
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     webClientId: GOOGLE_WEB_CLIENT_ID,
+    redirectUri: redirectUri,
     scopes: ['openid', 'profile', 'email'],
   });
 
@@ -156,7 +166,7 @@ export async function isAuthenticated(): Promise<boolean> {
 }
 
 /**
- * Sign out user - clears auth data, user cache, and preferences cache
+ * Sign out user - clears auth data, user cache, preferences cache, and family group cache
  * Now also clears persistent Foundry user cache
  */
 export async function signOut(): Promise<void> {
@@ -191,6 +201,17 @@ export async function signOut(): Promise<void> {
     } catch (error) {
       console.error('⚠️ Error clearing preferences cache:', error);
       // Don't throw - continue with sign out even if preferences cache clear fails
+    }
+  }
+  
+  // Clear family group cache for security and privacy
+  if (userId) {
+    try {
+      await clearFamilyGroupCache(userId);
+      console.log('🧹 Family group cache cleared for userId:', userId);
+    } catch (error) {
+      console.error('⚠️ Error clearing family group cache:', error);
+      // Don't throw - continue with sign out even if cache clear fails
     }
   }
   

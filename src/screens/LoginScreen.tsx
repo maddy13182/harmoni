@@ -102,16 +102,28 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   }, []);
 
   useEffect(() => {
+    console.log('🔐 OAuth Response received:', response?.type);
+    if (response) {
+      console.log('📋 Full response:', JSON.stringify(response, null, 2));
+    }
+    
     if (response?.type === 'success') {
+      console.log('✅ OAuth Success! Processing authentication...');
       const { authentication } = response;
       if (authentication?.accessToken) {
+        console.log('🔑 Access token received, fetching user info...');
         handleAuthSuccess(authentication.accessToken);
       } else {
+        console.log('❌ No access token in response');
         setError('No access token received');
         setIsLoading(false);
       }
     } else if (response?.type === 'error') {
+      console.log('❌ OAuth Error:', response.error);
       setError('Authentication failed. Please try again.');
+      setIsLoading(false);
+    } else if (response?.type === 'dismiss' || response?.type === 'cancel') {
+      console.log('⚠️ OAuth dismissed or cancelled by user');
       setIsLoading(false);
     }
   }, [response]);

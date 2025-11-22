@@ -32,7 +32,7 @@ export async function loadFamilyGroupsFresh(
   retryOnEmpty: boolean = false
 ): Promise<FamilyGroup[]> {
   try {
-    console.log('[CalendarService] 📡 Fetching fresh family groups from Foundry');
+    console.log('[CalendarService] 📡 Fetching fresh family groups from Foundry for user:', userId);
     
     let groups = await fetchFamilyGroups(userId);
     console.log('[CalendarService] 📋 First attempt returned:', groups.length, 'groups');
@@ -46,10 +46,10 @@ export async function loadFamilyGroupsFresh(
       console.log('[CalendarService] 📋 Retry returned:', groups.length, 'groups');
     }
     
-    // Store in cache for future use
+    // Store in cache for future use (user-specific)
     if (groups.length > 0) {
-      storeFamilyGroups(groups);
-      console.log('[CalendarService] 💾 Family groups cached');
+      await storeFamilyGroups(userId, groups);
+      console.log('[CalendarService] 💾 Family groups cached for user:', userId);
     }
     
     return groups;
@@ -80,7 +80,7 @@ export async function initializeCalendarAfterGroupCreation(userId: string): Prom
     console.log('[CalendarService] 📋 Refreshed preferences, defaultFamilyGroupId:', userPreference?.defaultFamilyGroupId);
     
     // Step 2: Clear family group cache and fetch fresh
-    clearFamilyGroupCache();
+    await clearFamilyGroupCache(userId);
     const familyGroups = await loadFamilyGroupsFresh(userId, true);  // With retry
     console.log('[CalendarService] 📋 Loaded', familyGroups.length, 'family groups');
     

@@ -26,6 +26,7 @@ import {
   getCurrentDisplayName,
 } from '../services/foundryClient';
 import { storeFamilyGroups } from '../services/familyGroupCache';
+import { getUserPreferences, updateUserPreferences } from '../services/foundry/preferencesService';
 
 interface FamilyGroupCheckScreenProps {
   onNoGroups: () => void;
@@ -74,8 +75,26 @@ export const FamilyGroupCheckScreen: React.FC<FamilyGroupCheckScreenProps> = ({
         }, 500);
       } else {
         // Has family groups - store in cache and proceed
-        console.log('✅ Found family groups, storing in cache');
-        storeFamilyGroups(groups);
+        console.log('✅ Found family groups, storing in cache for user:', userId);
+        await storeFamilyGroups(userId, groups);
+        
+        // SAFETY NET: Auto-set defaultFamilyGroupId if not already set
+        try {
+          const preferences = await getUserPreferences(userId);
+          if (preferences && !preferences.defaultFamilyGroupId) {
+            console.log('🔧 No defaultFamilyGroupId set, auto-setting to first group:', groups[0].familyGroupId);
+            await updateUserPreferences(preferences.userPreferenceId, {
+              defaultFamilyGroupId: groups[0].familyGroupId,
+            });
+            console.log('✅ Auto-set defaultFamilyGroupId successfully');
+          } else if (preferences?.defaultFamilyGroupId) {
+            console.log('✅ defaultFamilyGroupId already set:', preferences.defaultFamilyGroupId);
+          }
+        } catch (prefError) {
+          console.error('⚠️ Failed to auto-set defaultFamilyGroupId (non-critical):', prefError);
+          // Don't block navigation - this is a safety net, not critical
+        }
+        
         setTimeout(() => {
           onHasGroups();
         }, 500);

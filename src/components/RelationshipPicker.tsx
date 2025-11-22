@@ -35,6 +35,7 @@ interface RelationshipPickerProps {
 }
 
 // Relationship options with display labels and icons
+// Valid values from Foundry: dad, mom, daughter, son, grandpa, grandma, relative, friend, other
 const RELATIONSHIP_OPTIONS: { 
   value: RelationshipType; 
   label: string; 
@@ -44,7 +45,8 @@ const RELATIONSHIP_OPTIONS: {
   { value: 'mom', label: 'Mom', icon: 'woman' },
   { value: 'son', label: 'Son', icon: 'male' },
   { value: 'daughter', label: 'Daughter', icon: 'female' },
-  { value: 'grandparent', label: 'Grandparent', icon: 'people-circle' },
+  { value: 'grandpa', label: 'Grandpa', icon: 'man' },
+  { value: 'grandma', label: 'Grandma', icon: 'woman' },
   { value: 'relative', label: 'Relative', icon: 'people' },
   { value: 'friend', label: 'Friend', icon: 'heart' },
   { value: 'other', label: 'Other', icon: 'person' },
