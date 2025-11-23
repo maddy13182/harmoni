@@ -25,6 +25,7 @@ import { getCurrentUser } from '../services/foundry/cacheService';
 import { getUserPreferences, updateUserPreferences, refreshUserPreferences } from '../services/foundryClient';
 import UserPreferencesEditor from './UserPreferencesEditor';
 import FamilyCalendarSelectorScreen from '../screens/FamilyCalendarSelectorScreen';
+import { getVersionString, getVersionInfo, APP_VERSION, BUILD_NUMBER } from '../constants/AppVersion';
 
 interface MenuModalProps {
   visible: boolean;
@@ -227,7 +228,7 @@ export default function MenuModal({ visible, onClose, onSignOut, onCreateNewCale
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Harmoni Family Calendar</Text>
-        <Text style={styles.versionText}>Version 1.0.0</Text>
+        <Text style={styles.versionText}>{getVersionString()}</Text>
       </View>
     </>
   );

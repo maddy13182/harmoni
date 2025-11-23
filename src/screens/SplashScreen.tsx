@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '../constants/Colors';
 import Layout from '../constants/Layout';
+import { getShortVersion } from '../constants/AppVersion';
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -72,6 +73,9 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         
         {/* Tagline */}
         <Text style={styles.tagline}>A Family Calendar App</Text>
+        
+        {/* Version */}
+        <Text style={styles.version}>{getShortVersion()}</Text>
       </Animated.View>
 
       {/* Bottom decoration */}
@@ -119,6 +123,13 @@ const styles = StyleSheet.create({
     fontFamily: 'AllianceNo2-Light',
     color: Colors.text.inverse,
     opacity: 0.9,
+  },
+  version: {
+    fontSize: Layout.fontSize.sm,
+    fontFamily: 'AllianceNo2-Regular',
+    color: Colors.text.inverse,
+    opacity: 0.7,
+    marginTop: Layout.spacing.md,
   },
   bottomDecoration: {
     position: 'absolute',
