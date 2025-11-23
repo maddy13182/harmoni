@@ -84,8 +84,12 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   // ============================================
   useEffect(() => {
     loadCalendar();
-    loadUserPreferences();
     loadGroupName();
+  }, []);
+
+  // Load user preferences separately to avoid affecting modal state
+  useEffect(() => {
+    loadUserPreferences();
   }, []);
 
   // ============================================
@@ -107,7 +111,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   // ============================================
   // LOAD USER PREFERENCES
   // ============================================
-  async function loadUserPreferences() {
+  const loadUserPreferences = React.useCallback(async () => {
     try {
       const userId = getCurrentUserId();
       if (!userId) return;
@@ -117,7 +121,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
     } catch (error) {
       console.error('[CalendarScreen] Failed to load user preferences:', error);
     }
-  }
+  }, []);
 
   // ============================================
   // RELOAD EVENTS WHEN SELECTION CHANGES
@@ -533,18 +537,20 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         onVoiceCreate={handleVoiceCreate}
       />
 
-      {/* CHAT INTERFACE */}
-      <ChatInterface
-        visible={chatInterfaceVisible}
-        onClose={() => setChatInterfaceVisible(false)}
-        onEventCreated={(eventData) => {
-          console.log('Event created:', eventData);
-          setChatInterfaceVisible(false);
-          // TODO: Refresh calendar events
-        }}
-        userId={userId}
-        userTimezone={userPreferences?.homeTimezone || 'UTC'}
-      />
+      {/* CHAT INTERFACE - Only render when visible to prevent lifecycle issues */}
+      {chatInterfaceVisible && (
+        <ChatInterface
+          visible={chatInterfaceVisible}
+          onClose={() => setChatInterfaceVisible(false)}
+          onEventCreated={(eventData) => {
+            console.log('Event created:', eventData);
+            setChatInterfaceVisible(false);
+            // TODO: Refresh calendar events
+          }}
+          userId={userId}
+          userTimezone={userPreferences?.homeTimezone || 'UTC'}
+        />
+      )}
 
       {/* MENU MODAL */}
       <MenuModal
