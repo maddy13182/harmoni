@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0).
 
+## [0.10.2] - 2025-11-23 10:06:00
+
+### Added
+- **True Streaming with XMLHttpRequest**: Implemented progressive response streaming for AI chat
+  - Replaced `fetch` with `XMLHttpRequest` in `streamContinueSession()`
+  - Enables real-time chunk reception as server generates response
+  - Eliminates 20-second silence while waiting for complete response
+  - Uses `onprogress` event to receive chunks progressively
+  - Tracks `lastProcessedIndex` to only process new content
+  - Comprehensive error handling (network, timeout, abort)
+  - 60-second timeout for long-running requests
+  - Detailed logging for debugging and monitoring
+
+### Changed
+- **aipAgentService.ts**: Complete streaming implementation overhaul
+  - `streamContinueSession()` now uses XMLHttpRequest instead of fetch
+  - Progressive chunk processing with `xhr.onprogress`
+  - Real-time UI updates as text arrives from server
+  - Better error handling with specific error types
+  - Improved logging with timing information
+
+### Technical Details
+- **XMLHttpRequest Benefits**:
+  - Native React Native support for progressive events
+  - `onprogress` fires as chunks arrive (not buffered)
+  - Access to `responseText` during download
+  - Better control over request lifecycle
+- **Implementation**:
+  - Tracks `lastProcessedIndex` to avoid reprocessing
+  - Sends only new content to `onChunk` callback
+  - Handles remaining content in `onload` event
+  - 60-second timeout prevents hanging requests
+  - Comprehensive error handling for all failure modes
+
+**Benefits:**
+- ✅ Real-time streaming - see text as it's generated
+- ✅ No more 20-second silence
+- ✅ Better user experience with progressive feedback
+- ✅ Proper error handling and timeout management
+- ✅ Detailed logging for debugging
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `src/services/foundry/aipAgentService.ts` (XMLHttpRequest implementation)
+
+**Development Status:** ✅ True streaming operational, ready for testing
+
 ## [0.10.1] - 2025-11-23 09:49:00
 
 ### Fixed

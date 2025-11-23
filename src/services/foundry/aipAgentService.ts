@@ -193,7 +193,11 @@ ${userMessage}`;
 }
 
 /**
- * Stream continue session with real-time response handling
+ * Stream continue session with real-time response handling using XMLHttpRequest
+ * 
+ * Uses XMLHttpRequest instead of fetch to enable true progressive streaming in React Native.
+ * This allows us to receive chunks as they arrive from the server, eliminating the 20-second
+ * silence while waiting for the complete response.
  * 
  * @param agentRid - The RID of the AIP Agent
  * @param sessionRid - The RID of the session
@@ -214,7 +218,7 @@ export async function streamContinueSession(
   onComplete: () => void,
   onError: (error: string) => void
 ): Promise<void> {
-  console.log('💬 [AIP Agent] Starting streaming continue session...');
+  console.log('💬 [AIP Agent] Starting streaming continue session with XMLHttpRequest...');
   console.log('   Agent RID:', agentRid);
   console.log('   Session RID:', sessionRid);
   console.log('   User Message:', userMessage);
@@ -230,7 +234,6 @@ export async function streamContinueSession(
   console.log('   Message ID:', messageId);
   
   // SIMPLIFIED APPROACH: Prepend user context directly to the message
-  // This ensures the agent can read the user ID from the message text
   const enhancedMessage = `[User Context]
 User ID: ${userId}
 Timezone: ${timezone}
@@ -240,8 +243,8 @@ ${userMessage}`;
   
   console.log('   Enhanced Message:', enhancedMessage);
   
-  // Build simple request body without parameters
-  const requestBody: any = {
+  // Build request body
+  const requestBody = {
     messageId,
     userInput: {
       text: enhancedMessage
@@ -250,97 +253,109 @@ ${userMessage}`;
   
   console.log('   Request Body:', JSON.stringify(requestBody, null, 2));
   
-  try {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
     const startTime = Date.now();
-    console.log('   ⏱️  Sending streaming request at:', new Date().toISOString());
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${AUTH_TOKEN}`,
-        'Accept': 'text/event-stream',
-      },
-      body: JSON.stringify(requestBody),
-    });
-    
-    console.log('   Response Status:', response.status, response.statusText);
-    console.log('   Response Headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('   ❌ Streaming request failed');
-      console.error('   Error Response:', errorText);
-      onError('Error connecting to AI bot');
-      return;
-    }
-    
-    // Check if response.body exists (for web) or if we need to use text() (for React Native)
-    console.log('   Response body type:', typeof response.body);
-    console.log('   Response body exists:', !!response.body);
-    
-    if (!response.body) {
-      console.log('   ⚠️  No response.body - trying response.text() for React Native compatibility');
-      try {
-        const fullText = await response.text();
-        console.log('   📄 Full response text:', fullText);
-        console.log('   📏 Response length:', fullText.length);
-        
-        // The streamingContinue endpoint returns plain text (markdown formatted)
-        if (fullText.trim()) {
-          console.log('   ✨ Calling onChunk with full text');
-          onChunk(fullText);
-        }
-        
-        console.log('   ✅ Calling onComplete');
-        onComplete();
-        return;
-      } catch (error) {
-        console.error('   ❌ Error reading response text:', error);
-        onError('Error connecting to AI bot');
-        return;
-      }
-    }
-    
-    console.log('   ✅ Stream connection established');
-    console.log('   📡 Starting to read stream chunks...');
-    
-    // Read the stream
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+    let lastProcessedIndex = 0;
     let chunkCount = 0;
     
-    while (true) {
-      const { done, value } = await reader.read();
+    // Track progress to receive chunks as they arrive
+    xhr.onprogress = (event) => {
+      try {
+        const responseText = xhr.responseText;
+        
+        // Only process new content since last progress event
+        if (responseText.length > lastProcessedIndex) {
+          const newContent = responseText.substring(lastProcessedIndex);
+          lastProcessedIndex = responseText.length;
+          
+          chunkCount++;
+          const elapsed = Date.now() - startTime;
+          
+          console.log(`   📦 Chunk ${chunkCount} received (${newContent.length} chars) at ${elapsed}ms`);
+          console.log('   New content:', newContent.substring(0, 100) + (newContent.length > 100 ? '...' : ''));
+          
+          // Send the new chunk to the callback
+          if (newContent.trim()) {
+            onChunk(newContent);
+          }
+        }
+      } catch (error) {
+        console.error('   ❌ Error processing progress event:', error);
+      }
+    };
+    
+    // Handle successful completion
+    xhr.onload = () => {
+      const duration = Date.now() - startTime;
       
-      if (done) {
-        const duration = Date.now() - startTime;
-        console.log(`   ✅ Stream completed after ${duration}ms`);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        console.log(`   ✅ Stream completed successfully after ${duration}ms`);
         console.log(`   📊 Total chunks received: ${chunkCount}`);
+        console.log(`   📏 Total response length: ${xhr.responseText.length} characters`);
+        
+        // Process any remaining content that wasn't caught by onprogress
+        const responseText = xhr.responseText;
+        if (responseText.length > lastProcessedIndex) {
+          const remainingContent = responseText.substring(lastProcessedIndex);
+          if (remainingContent.trim()) {
+            console.log('   📦 Processing remaining content:', remainingContent.length, 'chars');
+            onChunk(remainingContent);
+          }
+        }
+        
         onComplete();
-        break;
+        resolve();
+      } else {
+        console.error('   ❌ Request failed with status:', xhr.status);
+        console.error('   Error response:', xhr.responseText);
+        onError(`Error: ${xhr.status} ${xhr.statusText}`);
+        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
       }
+    };
+    
+    // Handle network errors
+    xhr.onerror = () => {
+      console.error('   ❌ Network error during streaming');
+      onError('Network error connecting to AI bot');
+      reject(new Error('Network error'));
+    };
+    
+    // Handle timeout
+    xhr.ontimeout = () => {
+      console.error('   ❌ Request timeout');
+      onError('Request timeout');
+      reject(new Error('Request timeout'));
+    };
+    
+    // Handle abort
+    xhr.onabort = () => {
+      console.log('   ⚠️  Request aborted');
+      onError('Request aborted');
+      reject(new Error('Request aborted'));
+    };
+    
+    // Configure and send the request
+    try {
+      console.log('   ⏱️  Sending streaming request at:', new Date().toISOString());
       
-      chunkCount++;
-      const chunk = decoder.decode(value, { stream: true });
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Authorization', `Bearer ${AUTH_TOKEN}`);
+      xhr.setRequestHeader('Accept', 'text/plain, text/event-stream, */*');
       
-      console.log(`   📦 Chunk ${chunkCount} received (${value.length} bytes)`);
-      console.log('   Raw chunk:', chunk);
+      // Set timeout to 60 seconds
+      xhr.timeout = 60000;
       
-      // For streamingContinue, the response is plain text (not SSE format)
-      // Just send it directly to the callback
-      if (chunk.trim()) {
-        console.log('   ✨ Calling onChunk with:', chunk);
-        onChunk(chunk);
-      }
+      xhr.send(JSON.stringify(requestBody));
+      
+      console.log('   📡 XMLHttpRequest sent, waiting for progressive chunks...');
+    } catch (error) {
+      console.error('   ❌ Error sending XMLHttpRequest:', error);
+      onError('Error sending request');
+      reject(error);
     }
-  } catch (error) {
-    console.error('   ❌ Error during streaming:', error);
-    console.error('   Error Details:', error instanceof Error ? error.message : String(error));
-    console.error('   Error Stack:', error instanceof Error ? error.stack : 'N/A');
-    onError('Error connecting to AI bot');
-  }
+  });
 }
 
 /**
