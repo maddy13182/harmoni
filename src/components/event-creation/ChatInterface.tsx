@@ -22,6 +22,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -296,21 +297,63 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     );
   };
 
-  // Render typing indicator
-  const renderTypingIndicator = () => {
-    if (!isTyping) return null;
+  // Animated typing indicator
+  const TypingIndicator = () => {
+    const dot1Anim = useRef(new Animated.Value(0.4)).current;
+    const dot2Anim = useRef(new Animated.Value(0.4)).current;
+    const dot3Anim = useRef(new Animated.Value(0.4)).current;
+
+    useEffect(() => {
+      const createPulseAnimation = (animValue: Animated.Value, delay: number) => {
+        return Animated.loop(
+          Animated.sequence([
+            Animated.delay(delay),
+            Animated.timing(animValue, {
+              toValue: 1,
+              duration: 600,
+              useNativeDriver: true,
+            }),
+            Animated.timing(animValue, {
+              toValue: 0.4,
+              duration: 600,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+      };
+
+      const animation1 = createPulseAnimation(dot1Anim, 0);
+      const animation2 = createPulseAnimation(dot2Anim, 200);
+      const animation3 = createPulseAnimation(dot3Anim, 400);
+
+      animation1.start();
+      animation2.start();
+      animation3.start();
+
+      return () => {
+        animation1.stop();
+        animation2.stop();
+        animation3.stop();
+      };
+    }, []);
 
     return (
       <View style={[styles.messageContainer, styles.aiMessageContainer]}>
         <View style={[styles.messageBubble, styles.aiBubble, styles.typingBubble]}>
           <View style={styles.typingIndicator}>
-            <View style={[styles.typingDot, styles.typingDot1]} />
-            <View style={[styles.typingDot, styles.typingDot2]} />
-            <View style={[styles.typingDot, styles.typingDot3]} />
+            <Animated.View style={[styles.typingDot, { opacity: dot1Anim }]} />
+            <Animated.View style={[styles.typingDot, { opacity: dot2Anim }]} />
+            <Animated.View style={[styles.typingDot, { opacity: dot3Anim }]} />
           </View>
         </View>
       </View>
     );
+  };
+
+  // Render typing indicator
+  const renderTypingIndicator = () => {
+    if (!isTyping) return null;
+    return <TypingIndicator />;
   };
 
   return (
@@ -522,16 +565,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-  },
-  typingDot1: {
-    opacity: 0.4,
-  },
-  typingDot2: {
-    opacity: 0.6,
-  },
-  typingDot3: {
-    opacity: 0.8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   inputContainer: {
     flexDirection: 'row',
