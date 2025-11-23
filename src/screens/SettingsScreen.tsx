@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Layout } from '../constants/Layout';
+import { getVersionString, BUILD_NUMBER } from '../constants/AppVersion';
 
 interface SettingsScreenProps {
   onBack: () => void;
@@ -95,12 +96,12 @@ export default function SettingsScreen({
           
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Version</Text>
-            <Text style={styles.infoValue}>1.0.0</Text>
+            <Text style={styles.infoValue}>{getVersionString()}</Text>
           </View>
           
           <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Build</Text>
-            <Text style={styles.infoValue}>Production</Text>
+            <Text style={styles.infoLabel}>Build Number</Text>
+            <Text style={styles.infoValue}>{BUILD_NUMBER}</Text>
           </View>
           
           <View style={styles.infoItem}>

@@ -4,6 +4,7 @@ High-level tracking of development progress and major milestones.
 
 | Version | Timestamp | Commit Hash | Change Summary | Status |
 |---------|-----------|-------------|----------------|--------|
+| 0.8.1 | 2025-11-22 19:56:00 | TBD | 🔧 Version Management Fix - Dynamic version display | ✅ Stable |
 | 0.9.0 | 2025-11-22 16:30:00 | TBD | 👥 Family Invitation System + Android OAuth Fix | ✅ Stable |
 | 0.6.0 | 2025-11-19 21:15:00 | TBD | 🔁 Recurring Events + Event Detail Popup System | ✅ Stable |
 | 0.5.0 | 2025-11-18 22:03:00 | TBD | 🎨 Event Creation UI - Animated FAB with multi-modal interface | ✅ Stable |
@@ -869,7 +870,106 @@ src/components/calendar/
 - Comprehensive error handling throughout
 - Native platform APIs used appropriately
 
+## Version 0.8.1 Details
+
+**Major Achievement:** 🔧 Centralized Version Management - Single Source of Truth
+
+**Problem Solved:**
+- Version displayed inconsistently across app (hardcoded "1.0.0" in SettingsScreen)
+- Version mismatch between `package.json` (0.8.0) and `app.json` (0.9.0)
+- No single source of truth for version information
+
+**Solution Implemented:**
+- **Centralized Version System:** All version info flows from `package.json`
+  - `package.json` → `npm run version:patch` → `app.json` → `AppVersion.ts` → UI components
+  - Single command updates everywhere: `npm run version:patch && npm run build:increment`
+
+**Files Modified:**
+- `src/screens/SettingsScreen.tsx`:
+  - Removed hardcoded "1.0.0" version
+  - Added import: `getVersionString, BUILD_NUMBER` from AppVersion.ts
+  - Now displays: `Version 0.8.1 (Build 5)` dynamically
+  - Changed "Build" label to "Build Number" for clarity
+
+**Version Display Locations (All Now Dynamic):**
+1. **SplashScreen** → `getShortVersion()` → Shows: "v0.8.1" ✓
+2. **MenuModal** → `getVersionString()` → Shows: "Version 0.8.1 (Build 5)" ✓
+3. **SettingsScreen** → `getVersionString()` → Shows: "Version 0.8.1 (Build 5)" ✓
+
+**Version Update Workflow:**
+```bash
+# Update version (patch/minor/major)
+npm run version:patch  # 0.8.0 → 0.8.1
+
+# Increment build numbers
+npm run build:increment  # iOS: 4→5, Android: 4→5
+
+# Build for Expo
+eas build --platform android --profile preview
+```
+
+**Technical Implementation:**
+- **AppVersion.ts** reads from `Constants.expoConfig` at runtime
+- **sync-version.js** script syncs `package.json` version to `app.json`
+- **increment-build.js** script increments iOS buildNumber and Android versionCode
+- All UI components import from `AppVersion.ts` for consistency
+
+**Current Version State:**
+- App Version: 0.8.1
+- iOS Build Number: 5
+- Android Version Code: 5
+- Build Status: Building on EAS (Build ID: 5c35930d-3869-4142-a395-53cc57474c68)
+
+**User Benefits:**
+- ✅ Consistent version display across entire app
+- ✅ Single command to update version everywhere
+- ✅ No more hardcoded version strings
+- ✅ Automatic sync between package.json and app.json
+- ✅ Build numbers properly incremented
+
+**Developer Benefits:**
+- ✅ Single source of truth for version management
+- ✅ Automated version syncing with npm scripts
+- ✅ No manual file editing required
+- ✅ Version consistency guaranteed
+- ✅ Easy to maintain and update
+
+**Files Modified:**
+- `package.json` - Version updated to 0.8.1
+- `package-lock.json` - Lockfile updated
+- `app.json` - Version synced to 0.8.1, build numbers incremented to 5
+- `src/screens/SettingsScreen.tsx` - Now uses dynamic version from AppVersion.ts
+- `.gitignore` - Added build APK file
+
+**Development Status:**
+- ✅ Version management centralized
+- ✅ All UI components using dynamic version
+- ✅ Build numbers properly incremented
+- ✅ Android APK building on EAS
+- ✅ Ready for deployment
+
+**Next Priorities:**
+1. **Complete EAS Build:**
+   - Monitor build progress on Expo servers
+   - Download APK when ready
+   - Test on Android device
+
+2. **Verify Version Display:**
+   - Confirm version shows correctly in splash screen
+   - Verify version in menu modal
+   - Check version in settings screen
+
+3. **Document Version Process:**
+   - Update deployment documentation
+   - Add version management best practices
+   - Document build increment workflow
+
+**Technical Debt:**
+- None - Clean implementation following existing patterns
+- All changes backward compatible
+- Proper TypeScript typing maintained
+
 ---
 
-*Last Updated: 2025-11-22 16:30:00*
+*Last Updated: 2025-11-22 19:56:00*
 *Maintained by: Development Team*

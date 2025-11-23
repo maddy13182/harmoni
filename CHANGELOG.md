@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0).
 
+## [0.8.1] - 2025-11-22 19:56:00
+
+### Changed
+- **SettingsScreen.tsx**: Fixed hardcoded version display to use dynamic version from AppVersion.ts
+  - Removed hardcoded "1.0.0" version string
+  - Added import: `getVersionString, BUILD_NUMBER` from `src/constants/AppVersion.ts`
+  - Version now displays dynamically: "Version 0.8.1 (Build 5)"
+  - Changed "Build" label to "Build Number" for clarity
+  - Ensures version consistency across entire app
+
+- **Version Management**: Centralized version system now complete
+  - All version displays now read from single source of truth (`package.json`)
+  - Version update workflow: `npm run version:patch && npm run build:increment`
+  - Automatic sync between `package.json`, `app.json`, and `AppVersion.ts`
+
+### Fixed
+- **Version Display Inconsistency**: Fixed version showing incorrectly in Settings screen
+  - **Root Cause**: Hardcoded "1.0.0" string instead of dynamic version
+  - **Solution**: Import and use `getVersionString()` from AppVersion.ts
+  - **Impact**: Version now updates automatically when app version changes
+  - **Result**: Consistent version display across all 3 locations (Splash, Menu, Settings)
+
+### Technical Details
+- **Version Display Locations (All Now Dynamic)**:
+  1. SplashScreen → `getShortVersion()` → Shows: "v0.8.1"
+  2. MenuModal → `getVersionString()` → Shows: "Version 0.8.1 (Build 5)"
+  3. SettingsScreen → `getVersionString()` → Shows: "Version 0.8.1 (Build 5)"
+
+- **Version Update Workflow**:
+  ```bash
+  npm run version:patch  # Updates package.json
+  # Automatically syncs to app.json via sync-version.js
+  npm run build:increment  # Increments build numbers
+  # AppVersion.ts reads from app.json at runtime
+  ```
+
+- **Current Version State**:
+  - App Version: 0.8.1
+  - iOS Build Number: 5
+  - Android Version Code: 5
+
+**Benefits:**
+- ✅ Single source of truth for version management
+- ✅ Consistent version display across entire app
+- ✅ No more hardcoded version strings
+- ✅ Automatic sync with single command
+- ✅ Easy to maintain and update
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `src/screens/SettingsScreen.tsx` (now uses dynamic version)
+- `package.json` (version updated to 0.8.1)
+- `package-lock.json` (lockfile updated)
+- `app.json` (version synced to 0.8.1, build numbers incremented to 5)
+- `.gitignore` (added build APK file)
+
+**Development Status:** ✅ Version management centralized, all UI components using dynamic version
+
 ## [0.9.0] - 2025-11-22 16:30:00
 
 ### Added
