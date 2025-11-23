@@ -1,12 +1,19 @@
 // Palantir Foundry OSDK Client Configuration
 import { Client, createClient } from "@osdk/client";
+import Constants from 'expo-constants';
 import { debugFoundrySDK } from "../../utils/foundryDebug";
 
-// Foundry configuration from environment variables
+// Foundry configuration from environment variables or app.json
 export const FOUNDRY_CONFIG = {
-  url: process.env.EXPO_PUBLIC_FOUNDRY_API_URL || 'https://newageplatform.usw-16.palantirfoundry.com',
-  ontologyRid: process.env.EXPO_PUBLIC_FOUNDRY_ONTOLOGY_RID || 'ri.ontology.main.ontology.999b797d-0f22-4d1a-9127-a804ab27568a',
-  token: process.env.EXPO_PUBLIC_FOUNDRY_TOKEN || '',
+  url: process.env.EXPO_PUBLIC_FOUNDRY_API_URL || 
+       Constants.expoConfig?.extra?.foundryUrl ||
+       'https://newageplatform.usw-16.palantirfoundry.com',
+  ontologyRid: process.env.EXPO_PUBLIC_FOUNDRY_ONTOLOGY_RID || 
+               Constants.expoConfig?.extra?.ontologyRid ||
+               'ri.ontology.main.ontology.999b797d-0f22-4d1a-9127-a804ab27568a',
+  token: process.env.EXPO_PUBLIC_FOUNDRY_TOKEN || 
+         Constants.expoConfig?.extra?.foundryToken ||
+         '',
 };
 
 // Log SDK version information
@@ -23,6 +30,7 @@ try {
   console.log(`   @osdk/foundry: ${osdkFoundryVersion}`);
   console.log(`🌐 Foundry URL: ${FOUNDRY_CONFIG.url}`);
   console.log(`📋 Ontology RID: ${FOUNDRY_CONFIG.ontologyRid}`);
+  console.log(`🔑 Token present: ${FOUNDRY_CONFIG.token ? 'Yes (' + FOUNDRY_CONFIG.token.substring(0, 20) + '...)' : 'No'}`);
 } catch (error) {
   console.log('⚠️  Could not load SDK version info:', error instanceof Error ? error.message : String(error));
 }
