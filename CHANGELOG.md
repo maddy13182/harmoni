@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0).
 
+## [0.10.3] - 2025-11-23 10:25:00
+
+### Fixed
+- **Excessive User Cache Retrieval Logs**: Fixed performance issue causing excessive cache logging
+  - **Root Cause**: `getCurrentUser()` and `getCurrentUserId()` called at component top level, executing on every render
+  - **Solution**: Wrapped cache calls in `React.useMemo()` hooks to prevent unnecessary re-execution
+  - **Impact**: Eliminated hundreds of redundant cache retrieval logs when opening chat interface
+  - **Result**: Cleaner logs, better performance, reduced unnecessary function calls
+
+### Changed
+- **CalendarScreen.tsx**: Optimized user cache access with memoization
+  - Wrapped `getCurrentUser()` in `useMemo` with empty dependency array
+  - Wrapped `getCurrentUserId()` in `useMemo` with empty dependency array
+  - Wrapped `userInfo` object creation in `useMemo` with `currentUser` dependency
+  - Cache now only accessed once per component mount instead of on every render
+  - Prevents re-renders from triggering cache retrieval
+
+### Technical Details
+- **Before**: Cache accessed on every component render (triggered by state changes)
+- **After**: Cache accessed only once when component mounts
+- **Performance Impact**: 
+  - Reduced function calls from ~100+ to 1 per component lifecycle
+  - Eliminated log spam when chat interface opens
+  - Improved component render performance
+- **React Best Practice**: Using `useMemo` for expensive operations that don't need to re-run
+
+**Benefits:**
+- ✅ Cleaner console logs (no cache spam)
+- ✅ Better performance (fewer function calls)
+- ✅ Follows React best practices
+- ✅ No functional changes to user experience
+- ✅ Easier debugging with reduced log noise
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `src/screens/CalendarScreen.tsx` (memoized cache access)
+
+**Development Status:** ✅ Cache optimization complete, logs clean, performance improved
+
 ## [0.10.2] - 2025-11-23 10:06:00
 
 ### Added

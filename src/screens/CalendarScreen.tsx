@@ -67,13 +67,16 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   const [userPreferences, setUserPreferences] = useState<any>(null);
   const [displayGroupName, setDisplayGroupName] = useState<string | undefined>(familyGroupName);
 
-  // Get current user info for menu
-  const currentUser = getCurrentUser();
-  const userId = getCurrentUserId() || '';
-  const userInfo = currentUser ? {
-    name: currentUser.displayName,
-    email: currentUser.email || '',
-  } : undefined;
+  // Get current user info for menu - memoized to prevent excessive cache calls
+  const currentUser = React.useMemo(() => getCurrentUser(), []);
+  const userId = React.useMemo(() => getCurrentUserId() || '', []);
+  const userInfo = React.useMemo(() => 
+    currentUser ? {
+      name: currentUser.displayName,
+      email: currentUser.email || '',
+    } : undefined,
+    [currentUser]
+  );
 
   // Get all family members from calendar data
   const allFamilyMembers: FamilyMemberCalendar[] = calendarData?.familyGroupsWithMembers
