@@ -37,11 +37,14 @@ import {
   getCurrentUser,
 } from '../services/foundryClient';
 import { addFamilyGroup } from '../services/familyGroupCache';
+import { acceptInvitation } from '../services/foundry/invitationService';
+import { getUserPreferences, updateUserPreferences } from '../services/foundry/preferencesService';
 
 interface FamilyGroupSetupScreenProps {
   onGroupCreated: (groupName: string) => void;
   onCancel?: () => void;
   onSignOut: () => void;
+  isAddingCalendar?: boolean; // Flag to indicate if user is adding a calendar vs onboarding
 }
 
 interface FormErrors {
@@ -53,11 +56,23 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
   onGroupCreated,
   onCancel,
   onSignOut,
+  isAddingCalendar = false,
 }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
+  const [selectedJoinRelationship, setSelectedJoinRelationship] = useState<RelationshipType | undefined>();
   const [isCreating, setIsCreating] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+
+  // Conditional text based on context
+  const headerText = isAddingCalendar ? "Add Calendar" : "Family Calendar Setup";
+  const titleText = isAddingCalendar
+    ? "Add a Family Calendar"
+    : "Let's help you setup your family calendar";
+  const subtitleText = isAddingCalendar
+    ? "Join an existing group or create a new one"
+    : "Choose how you'd like to get started";
 
   // Get current user info for menu
   const currentUser = getCurrentUser();
@@ -145,12 +160,81 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
     }
   };
 
-  const handleJoinWithCode = () => {
-    Alert.alert(
-      'Coming Soon',
-      'The ability to join a family group with an invite code will be available soon!',
-      [{ text: 'OK' }]
-    );
+  const handleJoinWithCode = async () => {
+    if (!inviteCode.trim()) {
+      Alert.alert('Missing Information', 'Please enter an invite code.');
+      return;
+    }
+
+    if (!selectedJoinRelationship) {
+      Alert.alert('Missing Information', 'Please select your relationship to this family group.');
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+
+      const userId = getCurrentUserId();
+      const userEmail = currentUser?.email;
+
+      if (!userId || !userEmail) {
+        throw new Error('User information not found. Please sign in again.');
+      }
+
+      console.log('🎫 Joining family group with invite code:', inviteCode.trim());
+
+      const result = await acceptInvitation(
+        inviteCode.trim(), 
+        userId, 
+        userEmail,
+        selectedJoinRelationship
+      );
+
+      if (result.success) {
+        console.log('✅ Successfully joined family group:', result.familyGroupName);
+
+        // If this is adding a calendar (not onboarding), update default family group
+        if (isAddingCalendar && result.familyGroupId) {
+          try {
+            const preferences = await getUserPreferences(userId);
+            if (preferences) {
+              await updateUserPreferences(preferences.userPreferenceId, {
+                defaultFamilyGroupId: result.familyGroupId,
+              });
+              console.log('✅ Updated default family group to:', result.familyGroupId);
+            }
+          } catch (prefError) {
+            console.warn('⚠️ Could not update default family group:', prefError);
+            // Continue anyway - user can change it later
+          }
+        }
+
+        Alert.alert(
+          'Success!',
+          result.message,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Navigate to calendar with group name
+                onGroupCreated(result.familyGroupName || 'Family Group');
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Error', result.message, [{ text: 'OK' }]);
+      }
+    } catch (error) {
+      console.error('❌ Error joining with invite code:', error);
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to join family group. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   const handleCancel = () => {
@@ -311,9 +395,22 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Header with Menu Button */}
+      {/* Header with Close and Menu Buttons */}
       <View style={styles.topHeader}>
-        <Text style={styles.topHeaderTitle}>Family Calendar Setup</Text>
+        {onCancel ? (
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={onCancel}
+            accessible={true}
+            accessibilityLabel="Close"
+            accessibilityHint="Return to calendar"
+          >
+            <Ionicons name="close" size={28} color={Colors.text.primary} />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.closeButton} />
+        )}
+        <Text style={styles.topHeaderTitle}>{headerText}</Text>
         <TouchableOpacity 
           style={styles.menuButton}
           onPress={() => setMenuVisible(true)}
@@ -324,30 +421,14 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
 
       <View style={styles.content}>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Let's help you setup your family calendar</Text>
-          <Text style={styles.subtitle}>Choose how you'd like to get started</Text>
+          <Text style={styles.title}>{titleText}</Text>
+          <Text style={styles.subtitle}>{subtitleText}</Text>
         </View>
 
         <View style={styles.optionsContainer}>
-          {/* Option 1: Join with Invite Code */}
-          <TouchableOpacity 
-            style={[styles.optionCard, styles.joinCard]}
-            activeOpacity={0.95}
-            accessible={true}
-            accessibilityRole="button"
-            accessibilityLabel="Join existing family group with invite code"
-          >
-            <View style={styles.cardHeader}>
-              <View style={[styles.iconContainer, styles.joinIconContainer]}>
-                <Ionicons name="key" size={28} color="#EF7674" />
-              </View>
-              <View style={styles.cardTitleContainer}>
-                <Text style={styles.optionTitle}>Join Existing Group</Text>
-                <Text style={styles.optionDescription}>
-                  Have an invite code? Join your family's group
-                </Text>
-              </View>
-            </View>
+          {/* Option 1: Join with Invite Code - Compact Design */}
+          <View style={[styles.optionCard, styles.joinCard]}>
+            <Text style={styles.compactTitle}>Join Existing Group</Text>
             
             <View style={styles.inputContainer}>
               <TextInput
@@ -357,6 +438,7 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
                 value={inviteCode}
                 onChangeText={setInviteCode}
                 autoCapitalize="characters"
+                editable={!isJoining}
                 accessible={true}
                 accessibilityLabel="Invite code input"
                 accessibilityHint="Enter the invite code shared by your family"
@@ -367,34 +449,45 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
                   onPress={() => setInviteCode('')}
                   accessible={true}
                   accessibilityLabel="Clear invite code"
+                  disabled={isJoining}
                 >
                   <Ionicons name="close-circle" size={20} color={Colors.text.tertiary} />
                 </TouchableOpacity>
               )}
             </View>
 
+            {/* Relationship Picker for Join */}
+            <View style={styles.relationshipSection}>
+              <RelationshipPicker
+                label="Your Relationship"
+                selectedRelationship={selectedJoinRelationship}
+                onRelationshipSelect={setSelectedJoinRelationship}
+              />
+            </View>
+
             <TouchableOpacity
               style={[
-                styles.optionButton,
-                styles.joinButton,
-                !inviteCode.trim() && styles.optionButtonDisabled,
+                styles.compactJoinButton,
+                (!inviteCode.trim() || !selectedJoinRelationship) && styles.compactJoinButtonDisabled,
               ]}
               onPress={handleJoinWithCode}
-              disabled={!inviteCode.trim()}
+              disabled={!inviteCode.trim() || !selectedJoinRelationship || isJoining}
               activeOpacity={0.8}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel="Join with invite code"
-              accessibilityState={{ disabled: !inviteCode.trim() }}
+              accessibilityState={{ disabled: !inviteCode.trim() || !selectedJoinRelationship || isJoining }}
             >
-              <Ionicons name="arrow-forward" size={18} color="#FFF" />
-              <Text style={styles.optionButtonText}>Join with Code</Text>
+              {isJoining ? (
+                <>
+                  <ActivityIndicator size="small" color="#FFF" />
+                  <Text style={styles.compactJoinButtonText}>Joining...</Text>
+                </>
+              ) : (
+                <Text style={styles.compactJoinButtonText}>Join</Text>
+              )}
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.helpButton}>
-              <Text style={styles.helpText}>What's an invite code?</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
+          </View>
 
           {/* Divider */}
           <View style={styles.divider}>
@@ -446,9 +539,6 @@ export const FamilyGroupSetupScreen: React.FC<FamilyGroupSetupScreenProps> = ({
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         onSignOut={onSignOut}
-        onSettings={() => {
-          console.log('Settings pressed');
-        }}
         userInfo={userInfo}
       />
     </View>
@@ -477,6 +567,9 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   menuButton: {
+    padding: 8,
+  },
+  closeButton: {
     padding: 8,
   },
   scrollView: {
@@ -552,6 +645,7 @@ const styles = StyleSheet.create({
   },
   joinCard: {
     borderColor: Colors.primary.mint + '40',
+    padding: 16,
   },
   createCard: {
     borderColor: Colors.semantic.success + '40',
@@ -751,6 +845,33 @@ const styles = StyleSheet.create({
     color: "#EF7674",
     fontSize: 16,
     fontWeight: '500',
+  },
+  relationshipSection: {
+    marginBottom: 16,
+  },
+  compactTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#007AFF',
+    marginBottom: 16,
+  },
+  compactJoinButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  compactJoinButtonDisabled: {
+    backgroundColor: Colors.neutral.gray,
+  },
+  compactJoinButtonText: {
+    color: Colors.background.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
   },
 });
 

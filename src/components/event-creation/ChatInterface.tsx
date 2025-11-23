@@ -10,7 +10,7 @@
  * - Real-time streaming responses from Foundry AIP Agent
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -58,15 +58,75 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [sessionRid, setSessionRid] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
+  
   const scrollViewRef = useRef<ScrollView>(null);
   const currentAiMessageRef = useRef<string>('');
+  const isSessionInitializedRef = useRef(false);
+  const isMountedRef = useRef(true);
 
-  // Create session when component mounts and is visible
+  // Initialize AIP Agent session - memoized to prevent recreation
+  const initializeSession = useCallback(async () => {
+    // Prevent multiple simultaneous initializations
+    if (isSessionInitializedRef.current || isInitializing) {
+      console.log('⚠️  [ChatInterface] Session already initialized or initializing, skipping...');
+      return;
+    }
+
+    console.log('🚀 [ChatInterface] Initializing AIP Agent session...');
+    console.log('   User ID:', userId);
+    console.log('   User Timezone:', userTimezone);
+    
+    setIsInitializing(true);
+    
+    try {
+      const session = await createAgentSession(AGENT_RID);
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setSessionRid(session.rid);
+        setError(null);
+        isSessionInitializedRef.current = true;
+        console.log('✅ [ChatInterface] Session initialized successfully');
+      }
+    } catch (err) {
+      console.error('❌ [ChatInterface] Failed to initialize session:', err);
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setError('Error connecting to AI bot');
+        
+        // Show error as a message
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          text: 'Error connecting to AI bot',
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages([errorMessage]);
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsInitializing(false);
+      }
+    }
+  }, [userId, userTimezone, isInitializing]);
+
+  // Create session when component becomes visible - with proper dependencies
   useEffect(() => {
-    if (visible && !sessionRid) {
+    if (visible && !sessionRid && !isSessionInitializedRef.current && !isInitializing) {
+      console.log('📱 [ChatInterface] Modal opened, initializing session...');
       initializeSession();
     }
-  }, [visible]);
+  }, [visible, sessionRid, isInitializing, initializeSession]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      console.log('🧹 [ChatInterface] Component unmounting, cleaning up...');
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -77,36 +137,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   }, [messages]);
 
-  // Initialize AIP Agent session
-  const initializeSession = async () => {
-    console.log('🚀 [ChatInterface] Initializing AIP Agent session...');
-    console.log('   User ID:', userId);
-    console.log('   User Timezone:', userTimezone);
-    
-    try {
-      const session = await createAgentSession(AGENT_RID);
-      setSessionRid(session.rid);
-      setError(null);
-      console.log('✅ [ChatInterface] Session initialized successfully');
-    } catch (err) {
-      console.error('❌ [ChatInterface] Failed to initialize session:', err);
-      setError('Error connecting to AI bot');
-      
-      // Show error as a message
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        text: 'Error connecting to AI bot',
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-      setMessages([errorMessage]);
-    }
-  };
-
-  // Handle sending a message
-  const handleSend = async () => {
-    if (!inputText.trim() || !sessionRid) {
-      console.log('⚠️  [ChatInterface] Cannot send: missing input or session');
+  // Handle sending a message - memoized to prevent recreation
+  const handleSend = useCallback(async () => {
+    if (!inputText.trim() || !sessionRid || isTyping) {
+      console.log('⚠️  [ChatInterface] Cannot send: missing input, session, or already typing');
       return;
     }
 
@@ -150,6 +184,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         userTimezone,
         // onChunk: Update message as chunks arrive
         (chunk: string) => {
+          if (!isMountedRef.current) return;
+          
           currentAiMessageRef.current += chunk;
           setMessages(prev =>
             prev.map(msg =>
@@ -161,11 +197,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         },
         // onComplete: Hide typing indicator
         () => {
+          if (!isMountedRef.current) return;
+          
           console.log('✅ [ChatInterface] Streaming complete');
           setIsTyping(false);
         },
         // onError: Show error message
         (error: string) => {
+          if (!isMountedRef.current) return;
+          
           console.error('❌ [ChatInterface] Streaming error:', error);
           setIsTyping(false);
           setMessages(prev =>
@@ -178,6 +218,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         }
       );
     } catch (err) {
+      if (!isMountedRef.current) return;
+      
       console.error('❌ [ChatInterface] Error in handleSend:', err);
       setIsTyping(false);
       
@@ -190,10 +232,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         )
       );
     }
-  };
+  }, [inputText, sessionRid, isTyping, userId, userTimezone]);
 
-  // Handle closing the chat
-  const handleClose = () => {
+  // Handle closing the chat - memoized to prevent recreation
+  const handleClose = useCallback(() => {
     console.log('🔒 [ChatInterface] Closing chat interface');
     // Reset state when closing
     setMessages([]);
@@ -201,9 +243,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setIsTyping(false);
     setSessionRid(null);
     setError(null);
+    setIsInitializing(false);
     currentAiMessageRef.current = '';
+    isSessionInitializedRef.current = false;
     onClose();
-  };
+  }, [onClose]);
+
+  // Handle text input change - memoized to prevent recreation
+  const handleTextChange = useCallback((text: string) => {
+    setInputText(text);
+  }, []);
 
   // Render a single message
   const renderMessage = (message: Message) => {
@@ -325,12 +374,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 placeholder="Type your message..."
                 placeholderTextColor={Colors.text.tertiary}
                 value={inputText}
-                onChangeText={setInputText}
+                onChangeText={handleTextChange}
                 multiline
                 maxLength={500}
                 onSubmitEditing={handleSend}
                 blurOnSubmit={false}
-                editable={!!sessionRid && !isTyping}
+                editable={!!sessionRid && !isTyping && !isInitializing}
               />
               <TouchableOpacity
                 style={[

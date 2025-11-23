@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +31,7 @@ import MonthView from '../components/calendar/MonthView';
 import WeekView from '../components/calendar/WeekView';
 import DayView from '../components/calendar/DayView';
 import { FloatingActionButton, EventCreationModal, ChatInterface } from '../components/event-creation';
+import FamilyGroupSetupScreen from './FamilyGroupSetupScreen';
 import type { CalendarEvent, FamilyGroup, CalendarViewResponse, FamilyMemberCalendar } from '../types';
 import { extractDate } from '../utils/calendarHelpers';
 
@@ -61,6 +63,7 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
   const [whosWhoExpanded, setWhosWhoExpanded] = useState(false);
   const [eventCreationModalVisible, setEventCreationModalVisible] = useState(false);
   const [chatInterfaceVisible, setChatInterfaceVisible] = useState(false);
+  const [familyGroupSetupVisible, setFamilyGroupSetupVisible] = useState(false);
   const [userPreferences, setUserPreferences] = useState<any>(null);
   const [displayGroupName, setDisplayGroupName] = useState<string | undefined>(familyGroupName);
 
@@ -297,9 +300,17 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
 
   function handleCreateNewCalendar() {
     console.log('➕ Create new calendar requested');
-    // This would navigate to FamilyGroupSetupScreen
-    // For now, just show an alert
-    Alert.alert('Create Calendar', 'Navigation to create calendar screen would happen here');
+    setFamilyGroupSetupVisible(true);
+  }
+
+  function handleGroupCreatedFromModal(groupName: string) {
+    console.log('✅ Group created/joined from modal:', groupName);
+    setFamilyGroupSetupVisible(false);
+    // Reload calendar to show new group
+    setTimeout(() => {
+      loadCalendar();
+      loadGroupName();
+    }, 300);
   }
 
   // ============================================
@@ -544,6 +555,23 @@ export default function CalendarScreen({ onSignOut, familyGroupName }: CalendarS
         onCalendarChanged={handleCalendarChanged}
         userInfo={userInfo}
       />
+
+      {/* FAMILY GROUP SETUP MODAL */}
+      {familyGroupSetupVisible && (
+        <Modal
+          visible={familyGroupSetupVisible}
+          animationType="slide"
+          presentationStyle="fullScreen"
+          onRequestClose={() => setFamilyGroupSetupVisible(false)}
+        >
+          <FamilyGroupSetupScreen
+            isAddingCalendar={true}
+            onGroupCreated={handleGroupCreatedFromModal}
+            onCancel={() => setFamilyGroupSetupVisible(false)}
+            onSignOut={onSignOut}
+          />
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }

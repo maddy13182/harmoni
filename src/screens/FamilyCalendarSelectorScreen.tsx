@@ -244,8 +244,8 @@ export const FamilyCalendarSelectorScreen: React.FC<FamilyCalendarSelectorScreen
           disabled={switching}
           activeOpacity={0.7}
         >
-          <Ionicons name="add-circle" size={24} color="#EF7674" />
-          <Text style={styles.createButtonText}>Create New Family Calendar</Text>
+          <Ionicons name="people" size={24} color="#EF7674" />
+          <Text style={styles.createButtonText}>Create New / Join with Invite Code</Text>
         </TouchableOpacity>
         </ScrollView>
       )}

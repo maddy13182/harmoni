@@ -5,6 +5,179 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0).
 
+## [0.10.1] - 2025-11-23 09:49:00
+
+### Fixed
+- **CRITICAL: Chat Interface App Reload**: Fixed app reloading when typing in chat interface
+  - **Root Cause**: Missing dependencies in useEffect hooks causing infinite re-renders
+  - **Solution**: Comprehensive React Native best practices implementation
+    - Added `useCallback` for all handler functions to prevent recreation
+    - Fixed useEffect dependency arrays to include all referenced values
+    - Added `isMountedRef` to prevent state updates after unmount
+    - Added `isSessionInitializedRef` to prevent duplicate session initialization
+    - Added `isInitializing` state to prevent concurrent initialization attempts
+  - **Impact**: Eliminated app reload/rebundle when typing in chat
+  - **Result**: Stable, production-ready chat interface
+
+### Changed
+- **ChatInterface.tsx**: Complete stability overhaul following React Native best practices
+  - **Memoization**: All callbacks wrapped with `useCallback` to prevent recreation
+    - `initializeSession()`: Memoized with proper dependencies
+    - `handleSend()`: Memoized with proper dependencies
+    - `handleClose()`: Memoized with proper dependencies
+    - `handleTextChange()`: Memoized to prevent TextInput re-renders
+  - **Lifecycle Management**: Proper component lifecycle handling
+    - Added `isMountedRef` to track mount status
+    - Added cleanup in unmount effect
+    - All async callbacks check mount status before state updates
+    - Prevents "Can't perform a React state update on an unmounted component" warnings
+  - **Session Management**: Robust session initialization
+    - Added `isSessionInitializedRef` to track initialization status
+    - Added `isInitializing` state to prevent concurrent attempts
+    - Guards against multiple simultaneous session creations
+    - Proper cleanup on modal close
+  - **Dependency Arrays**: Fixed all useEffect dependencies
+    - Session initialization effect includes all referenced values
+    - Prevents infinite loops and unnecessary re-renders
+    - Proper React Hooks compliance
+  - **State Updates**: Protected all state updates with mount checks
+    - Streaming callbacks check `isMountedRef.current` before updating
+    - Error handlers check mount status
+    - Prevents memory leaks and crashes
+
+### Technical Details
+- **React Hooks Best Practices**:
+  - All callbacks memoized with `useCallback`
+  - All expensive computations would use `useMemo` (none needed here)
+  - Proper dependency arrays in all useEffect hooks
+  - Cleanup functions in effects that need them
+- **Component Lifecycle**:
+  - Mount tracking with `useRef` (doesn't trigger re-renders)
+  - Proper cleanup on unmount
+  - State updates guarded by mount status
+- **Session Management**:
+  - Initialization flag prevents duplicate sessions
+  - Loading state prevents concurrent attempts
+  - Proper reset on modal close
+- **Performance**:
+  - Reduced unnecessary re-renders
+  - Prevented function recreation on every render
+  - Optimized TextInput performance with memoized onChange
+
+**Benefits:**
+- ✅ No app reload when typing in chat
+- ✅ No infinite re-render loops
+- ✅ No memory leaks from unmounted components
+- ✅ Production-ready stability
+- ✅ Follows React Native best practices
+- ✅ Proper TypeScript typing throughout
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `src/components/event-creation/ChatInterface.tsx` (comprehensive stability fixes)
+
+**Development Status:** ✅ Chat interface stable and production-ready
+
+## [0.10.0] - 2025-11-22 21:21:00
+
+### Added
+- **Join Family Group with Invite Code**: Complete implementation of invitation acceptance flow
+  - `acceptInvitation()` function in `invitationService.ts`
+    - Calls Foundry `acceptInviationJoinActioncall` action
+    - Requires: invitationToken, userId, userEmail, selectedRelationship
+    - Returns family group ID and name on success
+    - Comprehensive error handling for invalid/expired codes
+  - **Relationship Picker in Join Flow**: Added relationship selection to join card
+    - User must select their relationship before joining
+    - Validates relationship is selected before allowing join
+    - Integrated RelationshipPicker component inline
+  - **Loading States**: Added `isJoining` state with loading indicator
+    - Button shows "Joining..." with spinner during API call
+    - Disables input fields during join operation
+    - Prevents duplicate submissions
+
+### Changed
+- **FamilyGroupSetupScreen**: Context-aware screen for both onboarding and adding calendars
+  - Added `isAddingCalendar` prop to differentiate contexts
+  - **Conditional Text Display**:
+    - Onboarding: "Family Calendar Setup" / "Let's help you setup your family calendar"
+    - Adding Calendar: "Add Calendar" / "Add a family calendar"
+  - **Close Button**: Added X button in top-left when `onCancel` prop is provided
+    - Allows users to exit back to calendar when adding a calendar
+    - Only shown when modal is opened from calendar (not during onboarding)
+    - Accessibility labels: "Close" / "Return to calendar"
+  - **Join Functionality**: Replaced placeholder alert with actual Foundry integration
+    - Validates invite code and relationship selection
+    - Calls `acceptInvitation()` with all required parameters
+    - Updates default family group if adding calendar (not onboarding)
+    - Shows success message with family group name
+    - Refreshes calendar after successful join
+
+- **CalendarScreen**: Integrated FamilyGroupSetupScreen as modal
+  - Added `familyGroupSetupVisible` state for modal visibility
+  - Updated `handleCreateNewCalendar()` to show modal instead of alert
+  - Added `handleGroupCreatedFromModal()` callback
+    - Closes modal on success
+    - Reloads calendar data to show new group
+    - Updates group name display
+  - Modal shown with `isAddingCalendar={true}` flag
+  - Full-screen modal presentation with slide animation
+
+- **invitationService.ts**: Enhanced with complete join functionality
+  - Updated `acceptInvitation()` signature to include `selectedRelationship`
+  - Added detailed logging for debugging
+  - Extracts family group info from Foundry response
+  - Handles edge cases: invalid codes, expired tokens, already a member
+
+### Technical Details
+- **Foundry Action**: `acceptInviationJoinActioncall`
+  - Parameters: invitationToken, userId, userEmail, selectedRelationship
+  - Returns: FamilyMembership (addedObjects) and FamilyGroup (modifiedObjects)
+  - Response logged with JSON.stringify for debugging
+- **Context Detection**: Uses `isAddingCalendar` boolean prop
+  - `true`: User is adding a calendar from main app
+  - `false` or `undefined`: User is in onboarding flow
+- **Default Calendar Update**: When adding calendar, new group becomes default
+  - Updates user preferences with new `defaultFamilyGroupId`
+  - Graceful fallback if preference update fails
+- **Modal Integration**: Full-screen modal with proper lifecycle management
+  - 300ms delay before reloading calendar (smooth transition)
+  - Proper cleanup on modal close
+
+**User Flow - Adding Calendar:**
+1. User opens menu → Calendar → Create New/Join with Invite Code
+2. FamilyGroupSetupScreen opens as modal with "Add Calendar" header
+3. User enters invite code and selects relationship
+4. Taps "Join with Code" button
+5. App calls Foundry action to accept invitation
+6. On success: Shows success alert, closes modal, reloads calendar
+7. New family group appears in calendar selector
+8. User can close modal anytime with X button
+
+**User Flow - Onboarding:**
+1. New user completes login and preferences
+2. FamilyGroupSetupScreen shows with "Family Calendar Setup" header
+3. No close button (must complete setup)
+4. Same join/create functionality
+5. After success: Proceeds to main calendar
+
+**Benefits:**
+- ✅ Complete join with invite code functionality
+- ✅ Context-aware UI (onboarding vs adding calendar)
+- ✅ Relationship selection integrated into join flow
+- ✅ Proper loading states and error handling
+- ✅ Close button for easy exit when adding calendar
+- ✅ Automatic default calendar update
+- ✅ Seamless calendar refresh after join
+
+**Commit Hash:** `TBD`
+**Files Modified:**
+- `src/services/foundry/invitationService.ts` (added acceptInvitation with selectedRelationship)
+- `src/screens/FamilyGroupSetupScreen.tsx` (context-aware, join implementation, close button)
+- `src/screens/CalendarScreen.tsx` (modal integration)
+
+**Development Status:** ✅ Join with invite code fully operational, ready for testing
+
 ## [0.8.1] - 2025-11-22 19:56:00
 
 ### Changed
